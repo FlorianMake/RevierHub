@@ -3,17 +3,50 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QGeoServiceProvider>
-
+#include <QString>
 #include <QSslSocket>
+#include <QPermission>
+#include <QLocationPermission>
+#include <QGeoPositionInfo>
+#include <QQmlContext>
+
+#include <getlivelocation.hpp>
 
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
+    QLocationPermission permission;
+
+    permission.setAccuracy(QLocationPermission::Precise);
+
+    qApp->requestPermission(
+        permission,
+        [](const QPermission &permission)
+        {
+            if (permission.status() == Qt::PermissionStatus::Granted)
+            {
+                qDebug() << "Location permission granted";
+            }
+            else
+            {
+                qDebug() << "Location permission denied";
+            }
+        });
+
     // Force Qt to scan lib/arm64 for all plugin types
     QString libPath = "/data/app/~~.../lib/arm64"; // we need the dynamic path
     QString libDir = QCoreApplication::applicationDirPath();
     app.addLibraryPath(libDir);
+
+    GetLiveLocation liveLocation;
+
+    QObject::connect(&liveLocation, &GetLiveLocation::locationChanged, [=](const QGeoCoordinate &coordinate) {
+                                        qDebug("foobar");
+                                        qDebug() << coordinate.latitude();
+                                        qDebug() << coordinate.longitude();
+
+    });
 
     // Also try setting QT_PLUGIN_PATH env var
     qputenv("QT_PLUGIN_PATH", libDir.toUtf8());
@@ -31,5 +64,10 @@ int main(int argc, char *argv[])
         []() { QCoreApplication::exit(-1); },
         Qt::QueuedConnection);
     engine.loadFromModule("RevierHub", "Main");
+
+    engine.rootContext()->setContextProperty(
+        "liveLocation",
+        &liveLocation);
+
     return QGuiApplication::exec();
 }
