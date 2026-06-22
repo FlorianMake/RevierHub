@@ -41,13 +41,6 @@ int main(int argc, char *argv[])
 
     GetLiveLocation liveLocation;
 
-    QObject::connect(&liveLocation, &GetLiveLocation::locationChanged, [=](const QGeoCoordinate &coordinate) {
-                                        qDebug("foobar");
-                                        qDebug() << coordinate.latitude();
-                                        qDebug() << coordinate.longitude();
-
-    });
-
     // Also try setting QT_PLUGIN_PATH env var
     qputenv("QT_PLUGIN_PATH", libDir.toUtf8());
     qputenv("QT_GEOSERVICES_PLUGIN_PATH", libDir.toUtf8());

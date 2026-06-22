@@ -15,6 +15,7 @@ qt_add_qml_module(appRevierHub
     URI RevierHub
     QML_FILES Main.qml
     SOURCES getlivelocation.hpp getlivelocation.cpp
+    SOURCES
 )
 set_target_properties(appRevierHub PROPERTIES
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}

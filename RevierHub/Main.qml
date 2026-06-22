@@ -21,8 +21,8 @@ ApplicationWindow {
         id: map
         anchors.fill: parent
         plugin: mapPlugin
-        center: QtPositioning.coordinate(47.8574, 10.2662)
-        zoomLevel: 17
+        center: liveLocation.newCenter
+        zoomLevel: 18
 
         MapQuickItem {
             coordinate: liveLocation.coordinate
