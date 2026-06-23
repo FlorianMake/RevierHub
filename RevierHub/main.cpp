@@ -6,9 +6,24 @@
 
 #include <QSslSocket>
 
+#include "Database/databasemanager.hpp"
+
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
+
+    DatabaseManager db;
+    if (!db.init()) {
+        qWarning() << "Database failed to initialize!";
+    }
+
+    int sessionId = db.startSession();
+
+    QGeoCoordinate coordinate(47.8639, 10.2662, 730.0);
+
+    db.addTrailPoint(sessionId, coordinate, 15);
+    int result = db.getTrailPoints();
+    qDebug() << "trailpoints count : " << result;
 
     // Force Qt to scan lib/arm64 for all plugin types
     QString libPath = "/data/app/~~.../lib/arm64"; // we need the dynamic path
@@ -31,5 +46,9 @@ int main(int argc, char *argv[])
         []() { QCoreApplication::exit(-1); },
         Qt::QueuedConnection);
     engine.loadFromModule("RevierHub", "Main");
+
+    // ends the database session
+    db.endSession(sessionId);
+
     return QGuiApplication::exec();
 }

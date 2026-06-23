@@ -14,6 +14,7 @@ qt_add_executable(appRevierHub main.cpp)
 qt_add_qml_module(appRevierHub
     URI RevierHub
     QML_FILES Main.qml
+    SOURCES Database/databasemanager.hpp Database/databasemanager.cpp
 )
 set_target_properties(appRevierHub PROPERTIES
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
