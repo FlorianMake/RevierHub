@@ -1,7 +1,10 @@
 #include "getlivelocation.hpp"
+#include "Database/databasemanager.hpp"
 
-GetLiveLocation::GetLiveLocation(QObject *parent)
+GetLiveLocation::GetLiveLocation(DatabaseManager *dataBaseManager, int sessionId, QObject *parent)
     : QObject(parent)
+    , m_dataBaseManager(dataBaseManager)
+    , m_sessionId(sessionId)
 {
     m_source = QGeoPositionInfoSource::createDefaultSource(this);
 
@@ -24,30 +27,26 @@ void GetLiveLocation::onPositionUpdated(
     if (!info.isValid())
         return;
 
-    m_currentCoordinate = info.coordinate();
+    auto coordinate = info.coordinate();
 
-    emit locationChanged(m_currentCoordinate);
+    if(checkMovementDistance(1.0)) {
+        m_currentCoordinate = coordinate;
+        m_dataBaseManager->addTrailPoint(m_sessionId, m_currentCoordinate);
+        qDebug() << "add trailpoint";
+        emit locationChanged(m_currentCoordinate);
+    }
 
-    if(shallRecenter()) {
-        m_currentCenter = info.coordinate();
+    if(checkMovementDistance(10.0)) {
+        m_currentCenter = coordinate;
         emit centerChanged(m_currentCenter);
     }
 }
 
-QGeoCoordinate GetLiveLocation::currentCoordinate() const
-{
-    return m_currentCoordinate;
-}
-
-QGeoCoordinate GetLiveLocation::currentCenter() const
-{
-    return m_currentCenter;
-}
-
-bool GetLiveLocation::shallRecenter()
+bool GetLiveLocation::checkMovementDistance(double distance)
 {
     double value = m_currentCenter.distanceTo(m_currentCoordinate);
-
+    QString test = "value = " + QString::number(value);
+    qDebug() << test;
     if(value > 10.00 || !m_currentCenter.isValid()) {
         return true;
     }

@@ -6,6 +6,8 @@
 #include <QGeoPositionInfoSource>
 #include <QGeoPositionInfo>
 
+class DatabaseManager;
+
 class GetLiveLocation : public QObject
 {
     Q_OBJECT
@@ -25,10 +27,7 @@ public:
         return m_currentCenter;
     }
 
-    explicit GetLiveLocation(QObject *parent = nullptr);
-
-    QGeoCoordinate currentCoordinate() const;
-    QGeoCoordinate currentCenter() const;
+    explicit GetLiveLocation(DatabaseManager* dataBaseManager, int sessionId, QObject *parent = nullptr);
 
 signals:
     void locationChanged(const QGeoCoordinate &coordinate);
@@ -38,7 +37,9 @@ private slots:
     void onPositionUpdated(const QGeoPositionInfo &info);
 
 private:
-    bool shallRecenter();
+    bool checkMovementDistance(double distance);
+    int m_sessionId;
+    DatabaseManager* m_dataBaseManager;
 
 
     QGeoPositionInfoSource *m_source;
