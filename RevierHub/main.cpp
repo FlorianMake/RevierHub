@@ -3,14 +3,38 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QGeoServiceProvider>
-
+#include <QString>
 #include <QSslSocket>
+#include <QPermission>
+#include <QLocationPermission>
+#include <QGeoPositionInfo>
+#include <QQmlContext>
+
+#include <getlivelocation.hpp>
 
 #include "Database/databasemanager.hpp"
 
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
+
+    QLocationPermission permission;
+
+    permission.setAccuracy(QLocationPermission::Precise);
+
+    qApp->requestPermission(
+        permission,
+        [](const QPermission &permission)
+        {
+            if (permission.status() == Qt::PermissionStatus::Granted)
+            {
+                qDebug() << "Location permission granted";
+            }
+            else
+            {
+                qDebug() << "Location permission denied";
+            }
+        });
 
     DatabaseManager db;
     if (!db.init()) {
@@ -30,6 +54,8 @@ int main(int argc, char *argv[])
     QString libDir = QCoreApplication::applicationDirPath();
     app.addLibraryPath(libDir);
 
+    GetLiveLocation liveLocation;
+
     // Also try setting QT_PLUGIN_PATH env var
     qputenv("QT_PLUGIN_PATH", libDir.toUtf8());
     qputenv("QT_GEOSERVICES_PLUGIN_PATH", libDir.toUtf8());
@@ -46,6 +72,10 @@ int main(int argc, char *argv[])
         []() { QCoreApplication::exit(-1); },
         Qt::QueuedConnection);
     engine.loadFromModule("RevierHub", "Main");
+
+    engine.rootContext()->setContextProperty(
+        "liveLocation",
+        &liveLocation);
 
     // ends the database session
     db.endSession(sessionId);
