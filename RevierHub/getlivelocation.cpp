@@ -29,25 +29,25 @@ void GetLiveLocation::onPositionUpdated(
 
     auto coordinate = info.coordinate();
 
-    if(checkMovementDistance(1.0)) {
+    if(checkMovementDistance(coordinate, m_currentCoordinate))
+    {
         m_currentCoordinate = coordinate;
         m_dataBaseManager->addTrailPoint(m_sessionId, m_currentCoordinate);
         qDebug() << "add trailpoint";
         emit locationChanged(m_currentCoordinate);
     }
-
-    if(checkMovementDistance(10.0)) {
+    if(checkMovementDistance(coordinate, m_currentCenter, 10.0))
+    {
         m_currentCenter = coordinate;
         emit centerChanged(m_currentCenter);
     }
 }
 
-bool GetLiveLocation::checkMovementDistance(double distance)
+bool GetLiveLocation::checkMovementDistance(QGeoCoordinate coordinateA, QGeoCoordinate coordinateB, double distance)
 {
-    double value = m_currentCenter.distanceTo(m_currentCoordinate);
-    QString test = "value = " + QString::number(value);
-    qDebug() << test;
-    if(value > 10.00 || !m_currentCenter.isValid()) {
+    double value = coordinateA.distanceTo(coordinateB);
+    if(value > distance || !m_currentCenter.isValid())
+    {
         return true;
     }
 

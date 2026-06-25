@@ -37,7 +37,7 @@ private slots:
     void onPositionUpdated(const QGeoPositionInfo &info);
 
 private:
-    bool checkMovementDistance(double distance);
+    bool checkMovementDistance(QGeoCoordinate coordinateA, QGeoCoordinate coordinateB, double distance = 1.0);
     int m_sessionId;
     DatabaseManager* m_dataBaseManager;
 
