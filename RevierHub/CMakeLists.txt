@@ -17,6 +17,7 @@ qt_add_qml_module(appRevierHub
     SOURCES getlivelocation.hpp getlivelocation.cpp
     SOURCES
     SOURCES Database/databasemanager.hpp Database/databasemanager.cpp
+    SOURCES trailmanager.hpp trailmanager.cpp
 )
 set_target_properties(appRevierHub PROPERTIES
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}

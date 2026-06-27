@@ -28,6 +28,7 @@ public:
     const int currentSessionId() const { return m_currentSession; }
 
     int getTrailPoints();
+    QList<QGeoCoordinate> getTrailPoints(int sessionId);
 
 private:
     QSqlDatabase m_db;

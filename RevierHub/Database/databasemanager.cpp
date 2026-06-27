@@ -2,8 +2,9 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QStandardPaths>
-#include <QDebug>
 #include <QDateTime>
+
+#include <QDebug>
 
 DatabaseManager::DatabaseManager(QObject *parent) : QObject(parent) {}
 
@@ -22,7 +23,7 @@ bool DatabaseManager::init()
     m_db.setDatabaseName(dbPath);
 
     if (!m_db.open()) {
-        qWarning() << "DB open failed:" << m_db.lastError().text();
+        qDebug() << "DB open failed:" << m_db.lastError().text();
         return false;
     }
 
@@ -112,3 +113,23 @@ int DatabaseManager::getTrailPoints() {
 
     return -1;
 }
+
+
+QList<QGeoCoordinate> DatabaseManager::getTrailPoints(int sessionId)
+{
+    QList<QGeoCoordinate> points;
+    QSqlQuery q;
+
+    // q.prepare("SELECT lat, lon FROM trail_points WHERE session_id = ? ORDER BY timestamp ASC");
+    // q.prepare("SELECT lat, lon FROM trail_points WHERE date(timestamp) = date('now') ORDER BY timestamp ASC");
+    q.prepare("SELECT lat, lon FROM trail_points WHERE timestamp >= datetime('now', '-24 hours') ORDER BY timestamp ASC");
+
+    // q.addBindValue(sessionId);
+
+    q.exec();
+    while (q.next()) {
+        points.append(QGeoCoordinate(q.value(0).toDouble(), q.value(1).toDouble()));
+    }
+    return points;
+}
+

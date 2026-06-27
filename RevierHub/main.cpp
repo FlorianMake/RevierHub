@@ -10,7 +10,8 @@
 #include <QGeoPositionInfo>
 #include <QQmlContext>
 
-#include <getlivelocation.hpp>
+#include "getlivelocation.hpp"
+#include "trailmanager.hpp"
 
 #include "Database/databasemanager.hpp"
 
@@ -36,17 +37,19 @@ int main(int argc, char *argv[])
             }
         });
 
-    DatabaseManager db;
-    if (!db.init()) {
+    DatabaseManager* db = new DatabaseManager();
+    if (!db->init()) {
         qWarning() << "Database failed to initialize!";
     }
 
-    int sessionId = db.startSession();
+    int sessionId = db->startSession();
+
+    TrailManager trails(db->currentSessionId());
 
     QGeoCoordinate coordinate(47.8639, 10.2662, 730.0);
 
-    db.addTrailPoint(sessionId, coordinate, 15);
-    int result = db.getTrailPoints();
+    db->addTrailPoint(sessionId, coordinate, 15);
+    int result = db->getTrailPoints();
     qDebug() << "trailpoints count : " << result;
 
     // Force Qt to scan lib/arm64 for all plugin types
@@ -77,8 +80,18 @@ int main(int argc, char *argv[])
         "liveLocation",
         &liveLocation);
 
+    engine.rootContext()->setContextProperty(
+        "trails",
+        &trails);
+
+    engine.rootContext()->setContextProperty(
+        "pointCount",
+        db->getTrailPoints());
+
+
     // ends the database session
-    db.endSession(sessionId);
+    db->endSession(sessionId);
+    db->deleteLater();
 
     return QGuiApplication::exec();
 }
