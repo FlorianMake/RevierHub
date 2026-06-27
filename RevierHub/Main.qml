@@ -36,5 +36,29 @@ ApplicationWindow {
                 radius: 5
             }
         }
+        MapPolyline {
+            line.width: 3
+            line.color: "#009E75"
+            path: trails.currentTrail
+        }
+    }
+
+    // debug overlay — sits on top
+    Rectangle {
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.margins: 10
+        width: debugText.width + 20
+        height: debugText.height + 16
+        color: "#AA000000"  // semi-transparent black
+        radius: 8
+
+        Text {
+            id: debugText
+            anchors.centerIn: parent
+            color: "white"
+            font.pixelSize: 12
+            text: "Pts: " + trails.trailLength + " coord: " + liveLocation.coordinate +" cnt: " + pointCount
+        }
     }
 }
