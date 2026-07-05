@@ -17,6 +17,11 @@ ApplicationWindow {
         }
     }
 
+    Item{
+        id:myItem
+        property double newScale
+    }
+
     Map {
         id: map
         anchors.fill: parent
@@ -41,10 +46,65 @@ ApplicationWindow {
             line.color: "#009E75"
             path: trails.currentTrail
         }
+
+        DragHandler {
+            id: drag
+            target: null
+            onTranslationChanged: (delta) => map.pan(-delta.x, -delta.y)
+         }
+
+        PinchHandler {
+            target: null    // handle it manually
+
+            onScaleChanged: {
+                console.log("scale original: " + scale)
+
+                if(scale > 1) {
+                    myItem.newScale = scale - ((scale-1) / 10)
+                }
+                else {
+                    myItem.newScale = scale + scale - ((0.9) / 10)
+                }
+
+                console.log("scale recalculated: " + myItem.newScale)
+
+                map.zoomLevel = myItem.newScale
+            }
+        }
+
+        /* PinchHandler {
+            target: null    // handle it manually
+
+            onScaleChanged: {
+                console.log("scale original: " + scale)
+
+                if(scale > 1) {
+                    myItem.newScale = scale - ((scale-1) / 10)
+                }
+                else {
+                    myItem.newScale = scale + scale - ((0.9) / 10)
+                }
+
+                console.log("scale recalculated: " + myItem.newScale)
+
+                map.zoomLevel *= myItem.newScale
+            }
+        }*/
+
+        /*PinchHandler {
+            onActiveChanged: {
+                if (active)
+                    startZoom = map.zoomLevel
+            }
+
+            onScaleChanged: {
+                map.zoomLevel = startZoom * scale
+            }
+        }*/
     }
 
     // debug overlay — sits on top
-    Rectangle {
+    /* Rectangle {
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.margins: 10
@@ -60,5 +120,5 @@ ApplicationWindow {
             font.pixelSize: 12
             text: "Pts: " + trails.trailLength + " coord: " + liveLocation.coordinate +" cnt: " + pointCount
         }
-    }
+    }*/
 }
