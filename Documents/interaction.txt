@@ -1,0 +1,73 @@
+################################
+#   Scrolling on the map.
+################################
+- while using the app the user shall be able to focus on walking / hunting or anything else,
+so usually the screen follows the user position within a specified range. Repositioning will
+happen every other 10 - 20 meters, this needs to be decided or maybe it will change after
+the zoom lvl of the user.
+
+- if the user want to scroll around, the repositioning will be turned off for some time, the
+map center will stay on the position the user decided. If the user is stationary for a longer
+time, the recentering mode wont turn on by itself. But the user will see a little marker on
+the edge of the map where he is located, if he is out of the current view.
+
+-If the user starts walking the recentering will turn on again. (maybe some more distance is
+needed than we us to determine if a ne trail point is created)
+
+
+################################
+#   Zooming
+################################
+- The interaction should be quite clear, if the user zooms in, the zoom lvl of the map will
+be increased accordingly to the user interaction.
+
+- This will also change the distance rings around the user position. Not every distance
+makes sense on each zoom level.
+
+
+
+################################
+#   Trail interaction
+################################
+- The trail view can show more trails, they need to be selectable, if the user decides he
+want to see the trail from a specific date or the last few days he should get different
+trails shown in the map view. Each trail needs to get a own color. The colors should not be
+selected, they will follow some rules we need to define (e.g. there are a few color items
+like in a hue map ... starting from red to green if we have 1 we have red if we have 2 we
+will have red and green if we have 3 or more the red and green will be splitted accordingly
+to the number of trails we have)
+
+- the trail shall show the currenct waypoints where i came from. the map wont show the whole
+trail if the zoom level does not show all items.
+
+- there need to be a table view or a list with the different trails. Selecting a specific
+trail should highlight the trail in the map. The list item needs to be checkable or shoud
+have a toggle function (no regular checkbox)
+
+
+
+
+
+################################
+#   Color definitions
+################################
+- trail colors need to be weakend
+- selected trails have higher visibility
+- trail range from red to ... in a hue map...
+- user color red
+- deer stands ...
+- animal locations...
+- ....
+
+
+
+
+
+
+################################
+#
+################################
+
+################################
+#
+################################
