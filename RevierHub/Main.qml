@@ -17,6 +17,12 @@ ApplicationWindow {
         }
     }
 
+    Item{
+        id:myItem
+        property double newScale
+        property double lastScale
+    }
+
     Map {
         id: map
         anchors.fill: parent
@@ -41,10 +47,36 @@ ApplicationWindow {
             line.color: "#009E75"
             path: trails.currentTrail
         }
+
+        DragHandler {
+            id: drag
+            target: null
+            onTranslationChanged: (delta) => map.pan(-delta.x, -delta.y)
+         }
+
+        PinchHandler {
+            target: null
+            maximumScale: 22
+            minimumScale: 3
+
+            onScaleChanged: {
+                console.log("scale: " + scale)
+
+                if(scale < (11 + 8)) {
+                    map.zoomLevel = (scale + 8)
+                }
+                else if( scale > (30 + 8) ) {
+                    map.zoomLevel = (30 + 8)
+                }
+                else {
+                    map.zoomLevel = (scale + 8)
+                }
+            }
+        }
     }
 
     // debug overlay — sits on top
-    Rectangle {
+    /* Rectangle {
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.margins: 10
@@ -60,5 +92,5 @@ ApplicationWindow {
             font.pixelSize: 12
             text: "Pts: " + trails.trailLength + " coord: " + liveLocation.coordinate +" cnt: " + pointCount
         }
-    }
+    }*/
 }

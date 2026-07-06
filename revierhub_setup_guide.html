@@ -1,0 +1,148 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); padding: 1rem 0; }
+.section { margin-bottom: 1.5rem; }
+.section-title { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.step { padding: 8px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.step:last-child { border-bottom: none; }
+.step-head { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.step-num { width: 22px; height: 22px; border-radius: 50%; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); font-size: 11px; font-weight: 500; color: var(--color-text-secondary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.step-label { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+.step-note { font-size: 12px; color: var(--color-text-secondary); margin-left: 32px; margin-top: 2px; }
+.cmd { font-family: var(--font-mono); font-size: 11px; color: var(--color-text-secondary); background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 4px 8px; margin: 4px 0 0 32px; display: block; white-space: pre-wrap; word-break: break-all; }
+.badge { display: inline-block; font-size: 10px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+.badge-warn { background: var(--color-background-warning); color: var(--color-text-warning); }
+.badge-ok { background: var(--color-background-success); color: var(--color-text-success); }
+.tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 0 32px; }
+.tag { font-size: 11px; padding: 2px 8px; border-radius: var(--border-radius-md); background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); color: var(--color-text-secondary); }
+.path { font-family: var(--font-mono); font-size: 11px; color: var(--color-text-secondary); }
+</style>
+
+<div class="section">
+  <div class="section-title">1 — system packages (ubuntu)</div>
+  <div class="step">
+    <div class="step-head"><div class="step-num">1</div><div class="step-label">Java JDK 17</div></div>
+    <code class="cmd">sudo apt install openjdk-17-jdk</code>
+    <div class="step-note">Path used in Qt Creator: <span class="path">/usr/lib/jvm/java-1.17.0-openjdk-amd64</span></div>
+  </div>
+  <div class="step">
+    <div class="step-head"><div class="step-num">2</div><div class="step-label">Android Studio <span class="badge badge-warn">manual install</span></div></div>
+    <code class="cmd">sudo snap install android-studio --classic</code>
+    <div class="step-note">Launch once → SDK lands at <span class="path">~/Android/Sdk</span></div>
+  </div>
+  <div class="step">
+    <div class="step-head"><div class="step-num">3</div><div class="step-label">ADB in PATH (permanent)</div></div>
+    <code class="cmd">echo 'export PATH=$PATH:~/Android/Sdk/platform-tools' >> ~/.bashrc
+source ~/.bashrc</code>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">2 — android SDK (via android studio SDK manager)</div>
+  <div class="step">
+    <div class="step-head"><div class="step-num">4</div><div class="step-label">SDK Platform 34 + NDK + Command-line Tools <span class="badge badge-warn">manual</span></div></div>
+    <div class="step-note">SDK Manager → SDK Platforms → Android 14 (API 34)</div>
+    <div class="step-note">SDK Manager → SDK Tools → NDK (Side by side) + Command-line Tools</div>
+  </div>
+  <div class="step">
+    <div class="step-head"><div class="step-num">5</div><div class="step-label">Remove problematic build tools</div></div>
+    <code class="cmd">~/Android/Sdk/cmdline-tools/latest/bin/sdkmanager --uninstall "build-tools;36.1.0"
+~/Android/Sdk/cmdline-tools/latest/bin/sdkmanager --uninstall "platforms;android-36.1"</code>
+    <div class="step-note">Qt 6.9 bug — picks highest platform, Gradle chokes on 36.1 format</div>
+  </div>
+  <div class="step">
+    <div class="step-head"><div class="step-num">6</div><div class="step-label">NDK symlink fix</div></div>
+    <code class="cmd">sudo mkdir -p /opt/android
+sudo ln -s ~/Android/Sdk/ndk/30.0.14904198 /opt/android/android-ndk-r27c</code>
+  </div>
+  <div class="step">
+    <div class="step-head"><div class="step-num">7</div><div class="step-label">OpenSSL for Android <span class="badge badge-warn">manual</span></div></div>
+    <div class="step-note">Qt Creator → Edit → Preferences → Devices → Android → Download OpenSSL</div>
+    <div class="step-note">Lands at: <span class="path">~/Android/Sdk/android_openssl/ssl_3/arm64-v8a/</span></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">3 — Qt setup</div>
+  <div class="step">
+    <div class="step-head"><div class="step-num">8</div><div class="step-label">Qt 6.7.3 via MaintenanceTool <span class="badge badge-warn">manual</span></div></div>
+    <div class="step-note">~/Qt/MaintenanceTool → Add components → Qt 6.7.3</div>
+    <div class="tag-row">
+      <span class="tag">android_arm64_v8a</span>
+      <span class="tag">gcc_64</span>
+      <span class="tag">Qt Location</span>
+      <span class="tag">Qt Positioning</span>
+      <span class="tag">Qt Quick</span>
+    </div>
+    <div class="step-note" style="margin-top:6px;">⚠ Qt 6.9 missing Qt Location in open source — use 6.7.3</div>
+  </div>
+  <div class="step">
+    <div class="step-head"><div class="step-num">9</div><div class="step-label">Update Gradle wrapper</div></div>
+    <code class="cmd">sed -i 's/gradle-8.12-bin/gradle-8.14-bin/' \
+  ~/Qt/6.7.3/android_arm64_v8a/src/3rdparty/gradle/gradle/wrapper/gradle-wrapper.properties</code>
+  </div>
+  <div class="step">
+    <div class="step-head"><div class="step-num">10</div><div class="step-label">Qt Creator Android settings <span class="badge badge-warn">manual</span></div></div>
+    <div class="step-note">Edit → Preferences → Devices → Android</div>
+    <div class="step-note">JDK: <span class="path">/usr/lib/jvm/java-1.17.0-openjdk-amd64</span></div>
+    <div class="step-note">SDK: <span class="path">~/Android/Sdk</span></div>
+    <div class="step-note">OpenSSL: use Download button → <span class="path">~/Android/Sdk/android_openssl</span></div>
+  </div>
+  <div class="step">
+    <div class="step-head"><div class="step-num">11</div><div class="step-label">Update Qt Creator <span class="badge badge-warn">manual</span></div></div>
+    <div class="step-note">MaintenanceTool → upgrade Qt Creator (6.4.2 has Android kit bugs)</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">4 — MapLibre prebuilt (Qt 6.7.3 android)</div>
+  <div class="step">
+    <div class="step-head"><div class="step-num">12</div><div class="step-label">Download + extract</div></div>
+    <code class="cmd">cd ~/Development
+wget https://github.com/maplibre/maplibre-native-qt/releases/download/v3.0.0/maplibre-native-qt_v3.0.0_Qt6.7.3_Android.tar.bz2
+mkdir maplibre-qt-prebuilt
+tar -xjf maplibre-native-qt_v3.0.0_Qt6.7.3_Android.tar.bz2 -C maplibre-qt-prebuilt</code>
+    <div class="step-note">Use arm64-v8a folder only: <span class="path">~/Development/maplibre-qt-prebuilt/maplibre-native-qt_v3.0.0_Qt6.7.3_Android/arm64-v8a/</span></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">5 — phone (Fairphone / any android)</div>
+  <div class="step">
+    <div class="step-head"><div class="step-num">13</div><div class="step-label">Enable developer mode + USB debugging <span class="badge badge-warn">manual</span></div></div>
+    <div class="step-note">Settings → About Phone → tap Build Number 7×</div>
+    <div class="step-note">Settings → System → Developer Options → USB Debugging ON</div>
+  </div>
+  <div class="step">
+    <div class="step-head"><div class="step-num">14</div><div class="step-label">udev rule for ADB</div></div>
+    <code class="cmd">echo 'SUBSYSTEM=="usb", ATTR{idVendor}=="18d1", MODE="0666", GROUP="plugdev"' | sudo tee /etc/udev/rules.d/51-android.rules
+sudo udevadm control --reload-rules && sudo udevadm trigger</code>
+    <div class="step-note">idVendor 18d1 = Google/Android. Check yours with lsusb if different phone.</div>
+  </div>
+  <div class="step">
+    <div class="step-head"><div class="step-num">15</div><div class="step-label">Verify</div></div>
+    <code class="cmd">adb devices</code>
+    <div class="step-note">Phone must show "Allow USB debugging?" popup → tap Allow</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">6 — known gotchas</div>
+  <div class="step">
+    <div class="step-head"><div class="step-num">⚠</div><div class="step-label">Always use Qt 6.7.3 kit, disable 6.9 for this project</div></div>
+    <div class="step-note">Projects → disable all kits except Qt 6.7.3 for Android arm64-v8a</div>
+  </div>
+  <div class="step">
+    <div class="step-head"><div class="step-num">⚠</div><div class="step-label">lib_name manifest issue → always do clean rebuild</div></div>
+    <div class="step-note">Cached builds can strip android.app.lib_name — Build → Clean All before deploy</div>
+  </div>
+  <div class="step">
+    <div class="step-head"><div class="step-num">⚠</div><div class="step-label">MapLibre plugin name is "maplibre" not "maplibregl"</div></div>
+    <div class="step-note">QML: Plugin { name: "maplibre" } — confirmed via QGeoServiceProvider::availableServiceProviders()</div>
+  </div>
+  <div class="step">
+    <div class="step-head"><div class="step-num">⚠</div><div class="step-label">Map tile style: openfreemap works without API key</div></div>
+    <code class="cmd">https://tiles.openfreemap.org/styles/liberty</code>
+  </div>
+</div>
