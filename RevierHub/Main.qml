@@ -20,6 +20,7 @@ ApplicationWindow {
     Item{
         id:myItem
         property double newScale
+        property double lastScale
     }
 
     Map {
@@ -54,53 +55,24 @@ ApplicationWindow {
          }
 
         PinchHandler {
-            target: null    // handle it manually
+            target: null
+            maximumScale: 22
+            minimumScale: 3
 
             onScaleChanged: {
-                console.log("scale original: " + scale)
+                console.log("scale: " + scale)
 
-                if(scale > 1) {
-                    myItem.newScale = scale - ((scale-1) / 10)
+                if(scale < (11 + 8)) {
+                    map.zoomLevel = (scale + 8)
+                }
+                else if( scale > (30 + 8) ) {
+                    map.zoomLevel = (30 + 8)
                 }
                 else {
-                    myItem.newScale = scale + scale - ((0.9) / 10)
+                    map.zoomLevel = (scale + 8)
                 }
-
-                console.log("scale recalculated: " + myItem.newScale)
-
-                map.zoomLevel = myItem.newScale
             }
         }
-
-        /* PinchHandler {
-            target: null    // handle it manually
-
-            onScaleChanged: {
-                console.log("scale original: " + scale)
-
-                if(scale > 1) {
-                    myItem.newScale = scale - ((scale-1) / 10)
-                }
-                else {
-                    myItem.newScale = scale + scale - ((0.9) / 10)
-                }
-
-                console.log("scale recalculated: " + myItem.newScale)
-
-                map.zoomLevel *= myItem.newScale
-            }
-        }*/
-
-        /*PinchHandler {
-            onActiveChanged: {
-                if (active)
-                    startZoom = map.zoomLevel
-            }
-
-            onScaleChanged: {
-                map.zoomLevel = startZoom * scale
-            }
-        }*/
     }
 
     // debug overlay — sits on top
