@@ -75,6 +75,25 @@ ApplicationWindow {
         }
     }
 
+    Image {
+        id: testImage
+        width: 60
+        height: 100
+        source: "qrc:/qt/qml/RevierHub/Resources/Menue_draft.png"
+
+        onStatusChanged: {
+            console.log(source, status, Image.Error)
+        }
+    }
+
+    Button {
+        id: mainMenueBtn
+        x: 50
+        y: 5
+
+        icon.source: "qrc:/qt/qml/RevierHub/Resources/Menue_draft.png"
+    }
+
     // debug overlay — sits on top
     /* Rectangle {
         anchors.top: parent.top

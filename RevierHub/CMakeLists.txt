@@ -10,7 +10,9 @@ find_package(QMapLibre REQUIRED COMPONENTS Core Location)
 if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/importedcontent/CMakeLists.txt")
     add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/importedcontent)
 endif()
-qt_add_executable(appRevierHub main.cpp)
+qt_add_executable(
+    appRevierHub main.cpp
+)
 qt_add_qml_module(appRevierHub
     URI RevierHub
     QML_FILES Main.qml
@@ -18,7 +20,12 @@ qt_add_qml_module(appRevierHub
     SOURCES
     SOURCES Database/databasemanager.hpp Database/databasemanager.cpp
     SOURCES trailmanager.hpp trailmanager.cpp
+    RESOURCES resources.qrc
+
+    RESOURCES
+        Resources/Menue_draft.png
 )
+
 set_target_properties(appRevierHub PROPERTIES
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}

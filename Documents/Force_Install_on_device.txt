@@ -1,0 +1,19 @@
+
+
+Installing the app on the device again:
+
+adb install -r /path/to/your-app-debug.apk
+
+// path somewhere here
+<build-dir>/android-build/build/outputs/apk/debug/android-build-debug.apk
+
+but be sure the device is accessable .... usually the adb command ends with 
+
+>>success<<
+
+
+
+
+// other commands:
+adb uninstall com.revierhub.app
+

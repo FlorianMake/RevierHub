@@ -9,6 +9,7 @@
 #include <QLocationPermission>
 #include <QGeoPositionInfo>
 #include <QQmlContext>
+#include <QDirIterator>
 
 #include "getlivelocation.hpp"
 #include "trailmanager.hpp"
@@ -22,6 +23,14 @@ int main(int argc, char *argv[])
     QLocationPermission permission;
 
     permission.setAccuracy(QLocationPermission::Precise);
+
+    /*
+    // use this to create a output for each single file in the application... helpful for finding new icons!!!!11
+    QDirIterator it(":", QDirIterator::Subdirectories);
+    while (it.hasNext()) {
+        qDebug() << it.next();
+    }
+    */
 
     qApp->requestPermission(
         permission,
@@ -87,7 +96,6 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty(
         "pointCount",
         db->getTrailPoints());
-
 
     // ends the database session
     db->endSession(sessionId);
