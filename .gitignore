@@ -1,3 +1,4 @@
 
 /RevierHub/build/Qt_6_7_3_for_Android_arm64_v8a_Debug/
 *.user
+/RevierHub/.qtcreator/CMakeLists.txt.user
