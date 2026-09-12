@@ -34,12 +34,6 @@ ApplicationWindow {
     // "https://basemaps.arcgis.com/arcgis/rest/services/World_Imagery/VectorTileServer"
 
 
-    Item{
-        id:myItem
-        property double newScale
-        property double lastScale
-    }
-
     Map {
         id: map
         anchors.fill: parent
