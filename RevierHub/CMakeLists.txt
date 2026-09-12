@@ -24,6 +24,9 @@ qt_add_qml_module(appRevierHub
 
     RESOURCES
         Resources/Menue_draft.png
+        QML_FILES menues/MainMenue.qml
+        RESOURCES Resources/Close_draft.png
+        QML_FILES menues/SettingsMenue.qml
 )
 
 set_target_properties(appRevierHub PROPERTIES

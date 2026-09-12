@@ -3,7 +3,10 @@ import QtQuick.Controls
 import QtLocation
 import QtPositioning
 
+import "menues"
+
 ApplicationWindow {
+
     visible: true
     width: Screen.width
     height: Screen.height
@@ -75,24 +78,25 @@ ApplicationWindow {
         }
     }
 
-    Image {
-        id: testImage
-        width: 60
-        height: 100
-        source: "qrc:/qt/qml/RevierHub/Resources/Menue_draft.png"
 
-        onStatusChanged: {
-            console.log(source, status, Image.Error)
-        }
+
+
+    StackView {
+        id: menueStack
+        anchors.fill: parent
+        initialItem: "menues/MainMenue.qml"
     }
 
-    Button {
+    // property Component mainmenue : Item {}
+
+    // button test, but it looks like a "button"...
+    /*Button {
         id: mainMenueBtn
         x: 50
         y: 5
 
         icon.source: "qrc:/qt/qml/RevierHub/Resources/Menue_draft.png"
-    }
+    }*/
 
     // debug overlay — sits on top
     /* Rectangle {
