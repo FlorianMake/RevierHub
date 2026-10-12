@@ -19,10 +19,13 @@
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
+    app.setOrganizationName("RevierHub");
+    app.setApplicationName("RevierHub");
 
     QLocationPermission permission;
 
     permission.setAccuracy(QLocationPermission::Precise);
+    permission.setAvailability(QLocationPermission::Always);
 
     /*
     // use this to create a output for each single file in the application... helpful for finding new icons!!!!11

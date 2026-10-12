@@ -2,37 +2,108 @@ import QtQuick
 import QtQuick.Controls
 import QtLocation
 import QtPositioning
+import QtQuick.Layouts
+import QtCore
 
-import "menues"
+// import "menues"
+
 
 ApplicationWindow {
-
+    id:mainWindow
     visible: true
     width: Screen.width
     height: Screen.height
+
+
+
+    //SettingsMenue {
+    //    id: settingsMenue
+    //}
+    Item{
+        id:settingsMenue
+
+        x:30
+        y:30
+
+
+        ColumnLayout {
+            spacing: 5
+
+            Text{
+                text: "Map settings"
+            }
+
+            RowLayout {
+                Text{
+                    text: "Map styles"
+                }
+
+                ComboBox {
+                    id: mapStyleComboBox
+
+                    Layout.leftMargin: 20
+                    Layout.preferredWidth: 120
+                    Layout.preferredHeight: 80
+
+                    model: ["Sepia", "Satellite"]
+                    currentIndex: mainWindow.mapStyle
+                    onActivated: mainWindow.updateStyle(currentIndex)
+                }
+            }
+
+            Button {
+                id: closingButton
+
+                text: "Closing"
+                onClicked: {
+                    menueStack.pop()
+                }
+            }
+        }
+    }
+
+    //MainMenue {
+    //    id: mainMenue
+    //}
+    Image {
+        id: mainMenue
+
+        x:30
+        y:30
+
+        width: 40
+        height: 60
+
+        source: "qrc:/qt/qml/RevierHub/Resources/Menue_draft.png"
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: {
+                menueStack.push(settingsMenue)
+            }
+        }
+    }
+
+
+
+    Settings {
+        id: viewSettings
+        category: "view"
+        property int mapStyle: 0
+    }
+
+    property int mapStyle: viewSettings.mapStyle
+    onMapStyleChanged: applyMapStyle()
 
     Plugin {
         id: mapPlugin
         name: "maplibre"
         PluginParameter {
             name: "maplibre.map.styles"
-            value: "https://tiles.openfreemap.org/styles/liberty"
+            value: "https://tiles.openfreemap.org/styles/liberty,"
+                 + "https://api.maptiler.com/maps/satellite/style.json?key=BCUiLcvKmomeRGpKOIea"
         }
     }
-    // liberty for openfreemap...
-    // "https://tiles.openfreemap.org/styles/liberty"
-
-
-    // https://cloud.maptiler.com/maps/
-    // https://cloud.maptiler.com/account/keys/
-
-    // satelite picture but quite old...
-    // "https://api.maptiler.com/maps/satellite/style.json?key=BCUiLcvKmomeRGpKOIea"
-
-
-
-    // "https://basemaps.arcgis.com/arcgis/rest/services/World_Imagery/VectorTileServer"
-
 
     Map {
         id: map
@@ -40,6 +111,8 @@ ApplicationWindow {
         plugin: mapPlugin
         center: liveLocation.newCenter
         zoomLevel: 18
+
+        onSupportedMapTypesChanged: mainWindow.applyMapStyle()
 
         MapQuickItem {
             coordinate: liveLocation.coordinate
@@ -86,42 +159,18 @@ ApplicationWindow {
         }
     }
 
+    function updateStyle(styleIndex) {
+        viewSettings.mapStyle = styleIndex
+    }
 
-
+    function applyMapStyle() {
+        if (mapStyle >= 0 && mapStyle < map.supportedMapTypes.length)
+            map.activeMapType = map.supportedMapTypes[mapStyle]
+    }
 
     StackView {
         id: menueStack
         anchors.fill: parent
-        initialItem: "menues/MainMenue.qml"
+        initialItem: mainMenue        // <-- object reference now, not "menues/MainMenue.qml"
     }
-
-    // property Component mainmenue : Item {}
-
-    // button test, but it looks like a "button"...
-    /*Button {
-        id: mainMenueBtn
-        x: 50
-        y: 5
-
-        icon.source: "qrc:/qt/qml/RevierHub/Resources/Menue_draft.png"
-    }*/
-
-    // debug overlay — sits on top
-    /* Rectangle {
-        anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.margins: 10
-        width: debugText.width + 20
-        height: debugText.height + 16
-        color: "#AA000000"  // semi-transparent black
-        radius: 8
-
-        Text {
-            id: debugText
-            anchors.centerIn: parent
-            color: "white"
-            font.pixelSize: 12
-            text: "Pts: " + trails.trailLength + " coord: " + liveLocation.coordinate +" cnt: " + pointCount
-        }
-    }*/
 }
