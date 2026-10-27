@@ -20,7 +20,7 @@ class TrailManager : public QObject
     Q_PROPERTY(int trailLength READ trailLength NOTIFY trailChanged)
 
 public:
-    TrailManager(int sessionId);
+    TrailManager(DatabaseManager *database, int sessionId);
 
     QVariantList currentTrail() const;
     int trailLength() const;
@@ -36,7 +36,7 @@ private:
     void setPoints(QVariantList pts);
 
     QVariantList m_points;
-    DatabaseManager* m_database;
+    DatabaseManager *m_database;
 };
 
 #endif // TRAILMANAGER_HPP

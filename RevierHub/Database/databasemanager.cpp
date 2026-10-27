@@ -126,11 +126,8 @@ QList<QGeoCoordinate> DatabaseManager::getTrailPoints(int sessionId)
     QList<QGeoCoordinate> points;
     QSqlQuery q;
 
-    // q.prepare("SELECT lat, lon FROM trail_points WHERE session_id = ? ORDER BY timestamp ASC");
-    // q.prepare("SELECT lat, lon FROM trail_points WHERE date(timestamp) = date('now') ORDER BY timestamp ASC");
-    q.prepare("SELECT lat, lon FROM trail_points WHERE timestamp >= datetime('now', '-224 hours') ORDER BY timestamp ASC");
-
-    // q.addBindValue(sessionId);
+    q.prepare("SELECT lat, lon FROM trail_points WHERE session_id = ? ORDER BY timestamp ASC");
+    q.addBindValue(sessionId);
 
     q.exec();
     while (q.next()) {
@@ -138,4 +135,3 @@ QList<QGeoCoordinate> DatabaseManager::getTrailPoints(int sessionId)
     }
     return points;
 }
-
