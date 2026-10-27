@@ -97,6 +97,7 @@ ApplicationWindow {
         category: "view"
         property int mapStyle: 0
         property bool showDistanceRings: true
+        property real mapZoomLevel: 18
     }
 
     property int mapStyle: viewSettings.mapStyle
@@ -118,8 +119,7 @@ ApplicationWindow {
         anchors.fill: parent
         plugin: mapPlugin
         center: liveLocation.newCenter
-        zoomLevel: 18
-        property real pinchStartZoom: zoomLevel
+        zoomLevel: Math.max(11, Math.min(19, viewSettings.mapZoomLevel))
 
         onSupportedMapTypesChanged: mainWindow.applyMapStyle()
 
@@ -202,19 +202,8 @@ ApplicationWindow {
             id: drag
             target: null
             onTranslationChanged: (delta) => map.pan(-delta.x, -delta.y)
-         }
-
-        PinchHandler {
-            target: null
-            onActiveChanged: {
-                if (active)
-                    map.pinchStartZoom = map.zoomLevel
-            }
-            onScaleChanged: map.zoomLevel = Math.max(
-                                map.minimumZoomLevel,
-                                Math.min(map.maximumZoomLevel,
-                                         map.pinchStartZoom + Math.log2(scale)))
         }
+
     }
 
     function updateStyle(styleIndex) {
@@ -231,4 +220,55 @@ ApplicationWindow {
         anchors.fill: parent
         initialItem: mainMenue        // <-- object reference now, not "menues/MainMenue.qml"
     }
+
+    Popup {
+        id: zoomSliderOverlay
+        parent: Overlay.overlay
+        visible: true
+        modal: false
+        focus: false
+        closePolicy: Popup.NoAutoClose
+        padding: 0
+        property bool isLandscape: parent.width > parent.height
+        width: zoomSlider.implicitWidth
+        height: parent.height * (isLandscape ? 0.55 : 0.33)
+        x: parent.width - width - (isLandscape ? 102 : 15)
+        y: parent.height - height - (isLandscape ? 40 : 82)
+
+        background: Item {}
+
+        contentItem: Slider {
+            id: zoomSlider
+            anchors.fill: parent
+            orientation: Qt.Vertical
+            from: 11
+            to: 19
+            value: map.zoomLevel
+            onMoved: viewSettings.mapZoomLevel = value
+
+            background: Rectangle {
+                x: zoomSlider.leftPadding
+                   + (zoomSlider.availableWidth - width) / 2
+                y: zoomSlider.topPadding
+                width: 10
+                height: zoomSlider.availableHeight
+                radius: width / 2
+                color: "#B33A3A3A"
+            }
+
+            handle: Rectangle {
+                x: zoomSlider.leftPadding
+                   + (zoomSlider.availableWidth - width) / 2
+                y: zoomSlider.topPadding
+                   + zoomSlider.visualPosition * (zoomSlider.availableHeight - height)
+                width: 28
+                height: 28
+                radius: width / 2
+                color: "#CC4A4A4A"
+                border.color: "#B32D2D2D"
+                border.width: 1
+            }
+        }
+    }
+
 }
