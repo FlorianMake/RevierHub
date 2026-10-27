@@ -55,6 +55,12 @@ bool DatabaseManager::createTables()
         )
     )");
 
+    // here would be the place to add new version dependent changes.
+    // If we update the database structure for example, we would need to add them as a UPDATE.
+    // Because some previous versions would not contain all table data we need.
+    // This sounds already like a big mess ... lets think about more information we can add to the tables
+    // to have all the information already when we would need them. That's a big todo before first rollout...
+
     return true;
 }
 
