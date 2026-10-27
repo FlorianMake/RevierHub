@@ -111,6 +111,7 @@ ApplicationWindow {
         plugin: mapPlugin
         center: liveLocation.newCenter
         zoomLevel: 18
+        property real pinchStartZoom: zoomLevel
 
         onSupportedMapTypesChanged: mainWindow.applyMapStyle()
 
@@ -140,22 +141,14 @@ ApplicationWindow {
 
         PinchHandler {
             target: null
-            maximumScale: 22
-            minimumScale: 3
-
-            onScaleChanged: {
-                console.log("scale: " + scale)
-
-                if(scale < (11 + 8)) {
-                    map.zoomLevel = (scale + 8)
-                }
-                else if( scale > (30 + 8) ) {
-                    map.zoomLevel = (30 + 8)
-                }
-                else {
-                    map.zoomLevel = (scale + 8)
-                }
+            onActiveChanged: {
+                if (active)
+                    map.pinchStartZoom = map.zoomLevel
             }
+            onScaleChanged: map.zoomLevel = Math.max(
+                                map.minimumZoomLevel,
+                                Math.min(map.maximumZoomLevel,
+                                         map.pinchStartZoom + Math.log2(scale)))
         }
     }
 
