@@ -4,17 +4,15 @@
 
 #include "Database/databasemanager.hpp"
 
-TrailManager::TrailManager(int sessionId)
-    : m_sessionId(sessionId)
+TrailManager::TrailManager(DatabaseManager *database, int sessionId)
+    : m_sessionId(sessionId),
+      m_database(database)
 {
-    m_database = new DatabaseManager();
-    if (!m_database->init()) {
-        qWarning() << "Database failed to initialize!";
-    }
-
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &TrailManager::getPoints);
     timer->start(10 * 1000);   // interval in milliseconds
+
+    getPoints();
 }
 
 

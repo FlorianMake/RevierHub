@@ -49,20 +49,19 @@ int main(int argc, char *argv[])
             }
         });
 
-    DatabaseManager* db = new DatabaseManager();
+    DatabaseManager* db = new DatabaseManager(&app);
     if (!db->init()) {
         qWarning() << "Database failed to initialize!";
+        return -1;
     }
 
     int sessionId = db->startSession();
+    if (sessionId < 0) {
+        qWarning() << "Failed to start trail session";
+        return -1;
+    }
 
-    TrailManager trails(db->currentSessionId());
-
-    QGeoCoordinate coordinate(47.8639, 10.2662, 730.0);
-
-    db->addTrailPoint(sessionId, coordinate, 15);
-    int result = db->getTrailPoints();
-    qDebug() << "trailpoints count : " << result;
+    TrailManager trails(db, sessionId);
 
     // Force Qt to scan lib/arm64 for all plugin types
     QString libPath = "/data/app/~~.../lib/arm64"; // we need the dynamic path
@@ -79,6 +78,28 @@ int main(int argc, char *argv[])
     QString pluginPath = QCoreApplication::applicationDirPath() + "/../lib/arm64";
     app.addLibraryPath(pluginPath);
 
+    QObject::connect(
+        &liveLocation,
+        &GetLiveLocation::locationChanged,
+        db,
+        [db, sessionId](const QGeoCoordinate &coordinate) {
+            db->addTrailPoint(sessionId, coordinate);
+        });
+    QObject::connect(
+        &liveLocation,
+        &GetLiveLocation::locationChanged,
+        &trails,
+        [&trails](const QGeoCoordinate &) {
+            trails.getPoints();
+        });
+    QObject::connect(
+        &app,
+        &QCoreApplication::aboutToQuit,
+        db,
+        [db, sessionId]() {
+            db->endSession(sessionId);
+        });
+
     QQmlApplicationEngine engine;
     QObject::connect(
         &engine,
@@ -86,7 +107,6 @@ int main(int argc, char *argv[])
         &app,
         []() { QCoreApplication::exit(-1); },
         Qt::QueuedConnection);
-    engine.loadFromModule("RevierHub", "Main");
 
     engine.rootContext()->setContextProperty(
         "liveLocation",
@@ -96,13 +116,7 @@ int main(int argc, char *argv[])
         "trails",
         &trails);
 
-    engine.rootContext()->setContextProperty(
-        "pointCount",
-        db->getTrailPoints());
-
-    // ends the database session
-    db->endSession(sessionId);
-    db->deleteLater();
+    engine.loadFromModule("RevierHub", "Main");
 
     return QGuiApplication::exec();
 }
