@@ -51,6 +51,12 @@ ApplicationWindow {
                 }
             }
 
+            Switch {
+                text: "Show distance rings"
+                checked: mainWindow.showDistanceRings
+                onToggled: viewSettings.showDistanceRings = checked
+            }
+
             Button {
                 id: closingButton
 
@@ -90,9 +96,11 @@ ApplicationWindow {
         id: viewSettings
         category: "view"
         property int mapStyle: 0
+        property bool showDistanceRings: true
     }
 
     property int mapStyle: viewSettings.mapStyle
+    property bool showDistanceRings: viewSettings.showDistanceRings
     onMapStyleChanged: applyMapStyle()
 
     Plugin {
@@ -114,6 +122,63 @@ ApplicationWindow {
         property real pinchStartZoom: zoomLevel
 
         onSupportedMapTypesChanged: mainWindow.applyMapStyle()
+
+        MapCircle {
+            center: liveLocation.coordinate
+            radius: 200
+            color: "transparent"
+            border.color: "#4A4A4A"
+            border.width: 2
+            visible: mainWindow.showDistanceRings
+        }
+
+        MapCircle {
+            center: liveLocation.coordinate
+            radius: 100
+            color: "transparent"
+            border.color: "#4A4A4A"
+            border.width: 2
+            visible: mainWindow.showDistanceRings
+        }
+
+        MapCircle {
+            center: liveLocation.coordinate
+            radius: 50
+            color: "transparent"
+            border.color: "#4A4A4A"
+            border.width: 2
+            visible: mainWindow.showDistanceRings
+        }
+
+        MapQuickItem {
+            coordinate: liveLocation.coordinate.atDistanceAndAzimuth(100, 0)
+            anchorPoint.x: distanceLabel.width / 2
+            anchorPoint.y: distanceLabel.height
+            visible: mainWindow.showDistanceRings
+
+            sourceItem: Text {
+                id: distanceLabel
+                text: "100 m"
+                color: "#4A4A4A"
+                font.bold: true
+                font.pixelSize: 10
+            }
+        }
+
+        MapQuickItem {
+            coordinate: liveLocation.coordinate.atDistanceAndAzimuth(200, 0)
+            anchorPoint.x: outerDistanceLabel.width / 2
+            anchorPoint.y: outerDistanceLabel.height
+            visible: mainWindow.showDistanceRings
+
+            sourceItem: Text {
+                id: outerDistanceLabel
+                text: "200 m"
+                color: "#4A4A4A"
+                font.bold: true
+                font.pixelSize: 10
+            }
+        }
 
         MapQuickItem {
             coordinate: liveLocation.coordinate
