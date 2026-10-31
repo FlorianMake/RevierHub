@@ -101,6 +101,7 @@ ApplicationWindow {
         property bool hasLastMapPosition: false
         property real lastMapLatitude: 0
         property real lastMapLongitude: 0
+        property bool repositioningEnabled: true
     }
 
     property int mapStyle: viewSettings.mapStyle
@@ -122,14 +123,10 @@ ApplicationWindow {
         id: map
         anchors.fill: parent
         plugin: mapPlugin
-        center: viewSettings.hasLastMapPosition
-                ? QtPositioning.coordinate(
-                      viewSettings.lastMapLatitude,
-                      viewSettings.lastMapLongitude)
-                : liveLocation.newCenter
         zoomLevel: Math.max(11, Math.min(19, viewSettings.mapZoomLevel))
 
         onSupportedMapTypesChanged: mainWindow.applyMapStyle()
+        Component.onCompleted: mainWindow.recenterToLastAcceptedPosition()
 
         MapCircle {
             center: liveLocation.coordinate
@@ -210,6 +207,10 @@ ApplicationWindow {
             id: drag
             target: null
             onTranslationChanged: (delta) => map.pan(-delta.x, -delta.y)
+            onActiveChanged: {
+                if (active)
+                    viewSettings.repositioningEnabled = false
+            }
         }
 
     }
@@ -223,6 +224,16 @@ ApplicationWindow {
             map.activeMapType = map.supportedMapTypes[mapStyle]
     }
 
+    function recenterToLastAcceptedPosition() {
+        if (viewSettings.hasLastMapPosition) {
+            map.center = QtPositioning.coordinate(
+                        viewSettings.lastMapLatitude,
+                        viewSettings.lastMapLongitude)
+        } else if (liveLocation.newCenter.isValid) {
+            map.center = liveLocation.newCenter
+        }
+    }
+
     Connections {
         target: liveLocation
 
@@ -230,6 +241,8 @@ ApplicationWindow {
             viewSettings.lastMapLatitude = coordinate.latitude
             viewSettings.lastMapLongitude = coordinate.longitude
             viewSettings.hasLastMapPosition = true
+            if (viewSettings.repositioningEnabled)
+                map.center = coordinate
         }
     }
 
@@ -237,6 +250,50 @@ ApplicationWindow {
         id: menueStack
         anchors.fill: parent
         initialItem: mainMenue        // <-- object reference now, not "menues/MainMenue.qml"
+    }
+
+    Button {
+        id: repositionButton
+        width: 56
+        height: 56
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 82
+        z: 1
+
+        onClicked: {
+            viewSettings.repositioningEnabled = !viewSettings.repositioningEnabled
+            if (viewSettings.repositioningEnabled)
+                recenterToLastAcceptedPosition()
+        }
+
+        background: Item {}
+
+        contentItem: Item {
+            opacity: viewSettings.repositioningEnabled ? 1 : 0.45
+
+            Rectangle {
+                width: 3
+                height: 42
+                anchors.centerIn: parent
+                color: "white"
+            }
+
+            Rectangle {
+                width: 42
+                height: 3
+                anchors.centerIn: parent
+                color: "white"
+            }
+
+            Rectangle {
+                width: 11
+                height: 11
+                radius: 6
+                anchors.centerIn: parent
+                color: viewSettings.repositioningEnabled ? "#E85A5A" : "white"
+            }
+        }
     }
 
     Popup {
