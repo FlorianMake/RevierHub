@@ -45,7 +45,7 @@ ApplicationWindow {
                     Layout.preferredWidth: 120
                     Layout.preferredHeight: 80
 
-                    model: ["Sepia", "Satellite"]
+                    model: ["Satellite", "Hunting", "Sepia"]
                     currentIndex: mainWindow.mapStyle
                     onActivated: mainWindow.updateStyle(currentIndex)
                 }
@@ -112,8 +112,9 @@ ApplicationWindow {
         name: "maplibre"
         PluginParameter {
             name: "maplibre.map.styles"
-            value: "https://tiles.openfreemap.org/styles/liberty,"
-                 + "https://api.maptiler.com/maps/satellite/style.json?key=BCUiLcvKmomeRGpKOIea"
+            value: "https://api.maptiler.com/maps/satellite/style.json?key=BCUiLcvKmomeRGpKOIea,"
+                 + huntingStyleUrl + ","
+                 + "https://tiles.openfreemap.org/styles/liberty"
         }
     }
 

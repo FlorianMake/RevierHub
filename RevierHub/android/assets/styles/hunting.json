@@ -1,0 +1,242 @@
+{
+    "version": 8,
+    "name": "Hunting",
+    "metadata": {
+        "description": "A warm outdoor style with distinct woodland, grassland, and farmland."
+    },
+    "sources": {
+        "natural_earth": {
+            "type": "raster",
+            "tileSize": 256,
+            "tiles": [
+                "https://tiles.openfreemap.org/natural_earth/ne2sr/{z}/{x}/{y}.png"
+            ],
+            "maxzoom": 6
+        },
+        "openmaptiles": {
+            "type": "vector",
+            "url": "https://tiles.openfreemap.org/planet"
+        }
+    },
+    "glyphs": "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
+    "layers": [
+        {
+            "id": "background",
+            "type": "background",
+            "paint": {
+                "background-color": "#e6dcc2"
+            }
+        },
+        {
+            "id": "natural-earth",
+            "type": "raster",
+            "source": "natural_earth",
+            "maxzoom": 7,
+            "paint": {
+                "raster-opacity": [
+                    "interpolate", ["linear"], ["zoom"],
+                    0, 0.6,
+                    7, 0
+                ]
+            }
+        },
+        {
+            "id": "farmland",
+            "type": "fill",
+            "source": "openmaptiles",
+            "source-layer": "landuse",
+            "filter": ["match", ["get", "class"],
+                ["farmland", "farm", "agriculture"], true, false
+            ],
+            "paint": {
+                "fill-color": "#b5c680",
+                "fill-opacity": 1
+            }
+        },
+        {
+            "id": "farmland-landcover",
+            "type": "fill",
+            "source": "openmaptiles",
+            "source-layer": "landcover",
+            "filter": ["match", ["get", "class"],
+                ["farmland", "farm", "agriculture"], true, false
+            ],
+            "paint": {
+                "fill-color": "#b5c680",
+                "fill-opacity": 1
+            }
+        },
+        {
+            "id": "grass",
+            "type": "fill",
+            "source": "openmaptiles",
+            "source-layer": "landcover",
+            "filter": ["==", ["get", "class"], "grass"],
+            "paint": {
+                "fill-color": "#b5c680",
+                "fill-opacity": 1
+            }
+        },
+        {
+            "id": "woodland",
+            "type": "fill",
+            "source": "openmaptiles",
+            "source-layer": "landcover",
+            "filter": ["==", ["get", "class"], "wood"],
+            "paint": {
+                "fill-color": "#668d59",
+                "fill-opacity": 0.85,
+                "fill-outline-color": "#527347"
+            }
+        },
+        {
+            "id": "residential",
+            "type": "fill",
+            "source": "openmaptiles",
+            "source-layer": "landuse",
+            "filter": ["==", ["get", "class"], "residential"],
+            "paint": {
+                "fill-color": "#d8cbb1",
+                "fill-opacity": 0.65
+            }
+        },
+        {
+            "id": "water",
+            "type": "fill",
+            "source": "openmaptiles",
+            "source-layer": "water",
+            "paint": {
+                "fill-color": "#88adc0"
+            }
+        },
+        {
+            "id": "waterways",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "waterway",
+            "layout": {
+                "line-cap": "round"
+            },
+            "paint": {
+                "line-color": "#709bb2",
+                "line-width": [
+                    "interpolate", ["exponential", 1.3], ["zoom"],
+                    10, 0.5,
+                    18, 3
+                ]
+            }
+        },
+        {
+            "id": "buildings",
+            "type": "fill",
+            "source": "openmaptiles",
+            "source-layer": "building",
+            "minzoom": 13,
+            "paint": {
+                "fill-color": "#b79b7c",
+                "fill-outline-color": "#987a5c"
+            }
+        },
+        {
+            "id": "track-casing",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "filter": ["match", ["get", "class"], ["track", "service"], true, false],
+            "layout": {
+                "line-cap": "round",
+                "line-join": "round"
+            },
+            "paint": {
+                "line-color": "#705d42",
+                "line-width": [
+                    "interpolate", ["exponential", 1.3], ["zoom"],
+                    12, 1,
+                    18, 5
+                ]
+            }
+        },
+        {
+            "id": "tracks",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "filter": ["match", ["get", "class"], ["track", "service"], true, false],
+            "layout": {
+                "line-cap": "round",
+                "line-join": "round"
+            },
+            "paint": {
+                "line-color": "#d9c99a",
+                "line-width": [
+                    "interpolate", ["exponential", 1.3], ["zoom"],
+                    12, 0.5,
+                    18, 3
+                ]
+            }
+        },
+        {
+            "id": "paths",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "filter": ["match", ["get", "class"], ["path", "pedestrian"], true, false],
+            "layout": {
+                "line-cap": "round"
+            },
+            "paint": {
+                "line-color": "#8f7e5d",
+                "line-dasharray": [2, 1],
+                "line-width": [
+                    "interpolate", ["exponential", 1.3], ["zoom"],
+                    13, 0.5,
+                    18, 2
+                ]
+            }
+        },
+        {
+            "id": "roads",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "filter": ["match", ["get", "class"],
+                ["motorway", "trunk", "primary", "secondary", "tertiary", "minor"],
+                true, false
+            ],
+            "layout": {
+                "line-cap": "round",
+                "line-join": "round"
+            },
+            "paint": {
+                "line-color": "#8f8b7c",
+                "line-width": [
+                    "interpolate", ["exponential", 1.4], ["zoom"],
+                    8, 0.4,
+                    14, 2,
+                    18, 7
+                ]
+            }
+        },
+        {
+            "id": "place-labels",
+            "type": "symbol",
+            "source": "openmaptiles",
+            "source-layer": "place",
+            "minzoom": 8,
+            "layout": {
+                "text-field": ["get", "name"],
+                "text-font": ["Noto Sans Regular"],
+                "text-size": [
+                    "interpolate", ["linear"], ["zoom"],
+                    8, 10,
+                    14, 14
+                ]
+            },
+            "paint": {
+                "text-color": "#4d3d2c",
+                "text-halo-color": "#efe7d5",
+                "text-halo-width": 1
+            }
+        }
+    ]
+}
