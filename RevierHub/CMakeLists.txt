@@ -3,7 +3,7 @@ project(RevierHub VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(QT_QML_GENERATE_QMLLS_INI ON)
-find_package(Qt6 REQUIRED COMPONENTS Quick Positioning Location)
+find_package(Qt6 REQUIRED COMPONENTS Quick Positioning Location Sql)
 qt_standard_project_setup(REQUIRES 6.7)
 set(QMapLibre_DIR /home/retno/Development/maplibre-qt-prebuilt/maplibre-native-qt_v3.0.0_Qt6.7.3_Android/arm64-v8a/lib/cmake/QMapLibre)
 find_package(QMapLibre REQUIRED COMPONENTS Core Location)
@@ -47,12 +47,13 @@ set_target_properties(appRevierHub PROPERTIES
     QT_ANDROID_VERSION_CODE 1
     QT_ANDROID_EXTRA_PLUGINS "/home/retno/Development/maplibre-qt-prebuilt/maplibre-native-qt_v3.0.0_Qt6.7.3_Android/arm64-v8a/plugins/geoservices"
     QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android"
-    QT_ANDROID_EXTRA_LIBS "/home/retno/Android/Sdk/android_openssl/ssl_3/arm64-v8a/libssl_3.so;/home/retno/Android/Sdk/android_openssl/ssl_3/arm64-v8a/libcrypto_3.so"
+    QT_ANDROID_EXTRA_aLIBS "/home/retno/Android/Sdk/android_openssl/ssl_3/arm64-v8a/libssl_3.so;/home/retno/Android/Sdk/android_openssl/ssl_3/arm64-v8a/libcrypto_3.so"
 )
 target_link_libraries(appRevierHub
     PRIVATE Qt6::Quick
     PRIVATE Qt6::Positioning
     PRIVATE Qt6::Location
+    PRIVATE Qt6::Sql
     PRIVATE QMapLibre::Core
     PRIVATE QMapLibre::Location
 )

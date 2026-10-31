@@ -10,6 +10,7 @@
 #include <QGeoPositionInfo>
 #include <QQmlContext>
 #include <QDirIterator>
+#include <QStandardPaths>
 #include <QFile>
 #include <QSaveFile>
 #include <QUrl>
@@ -24,12 +25,21 @@ QString installHuntingStyle()
 {
     QFile source("assets:/styles/hunting.json");
     if (!source.open(QIODevice::ReadOnly)) {
-        qWarning() << "Failed to read bundled Hunting style:" << source.errorString();
+        source.setFileName(":/qt/qml/RevierHub/android/assets/styles/hunting.json");
+        if (!source.open(QIODevice::ReadOnly)) {
+            qWarning() << "Failed to read bundled Hunting style:" << source.errorString();
+            return {};
+        }
+    }
+
+    const QString dataPath = QStandardPaths::writableLocation(
+        QStandardPaths::AppDataLocation);
+    if (!QDir().mkpath(dataPath)) {
+        qWarning() << "Failed to create Hunting style directory:" << dataPath;
         return {};
     }
 
-    const QString stylePath = QStandardPaths::writableLocation(
-        QStandardPaths::AppDataLocation) + "/hunting.json";
+    const QString stylePath = dataPath + "/hunting.json";
     QSaveFile destination(stylePath);
     if (!destination.open(QIODevice::WriteOnly)) {
         qWarning() << "Failed to write Hunting style:" << destination.errorString();
@@ -47,6 +57,7 @@ QString installHuntingStyle()
 
 int main(int argc, char *argv[])
 {
+    qputenv("QSG_RENDER_LOOP", "basic");
     QGuiApplication app(argc, argv);
     app.setOrganizationName("RevierHub");
     app.setApplicationName("RevierHub");
@@ -149,6 +160,9 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty(
         "trails",
         &trails);
+    engine.rootContext()->setContextProperty(
+        "database",
+        db);
     engine.rootContext()->setContextProperty(
         "huntingStyleUrl",
         huntingStyleUrl);

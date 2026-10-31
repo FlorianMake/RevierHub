@@ -53,6 +53,7 @@ have a toggle function (no regular checkbox)
 ################################
 - trail colors need to be weakened some pastel effect
 - the selected trail do have a higher visibility
+- hunting areas: orange `#F57C00` borders with transparent orange fills
 - trail range from red to ... in a hue map... maybe don't start at red lets see what colors
 will be good
 - user color red
