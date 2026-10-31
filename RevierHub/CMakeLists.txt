@@ -7,6 +7,13 @@ find_package(Qt6 REQUIRED COMPONENTS Quick Positioning Location)
 qt_standard_project_setup(REQUIRES 6.7)
 set(QMapLibre_DIR /home/retno/Development/maplibre-qt-prebuilt/maplibre-native-qt_v3.0.0_Qt6.7.3_Android/arm64-v8a/lib/cmake/QMapLibre)
 find_package(QMapLibre REQUIRED COMPONENTS Core Location)
+
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/android-build/assets/styles")
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/android/assets/styles/hunting.json"
+    "${CMAKE_CURRENT_BINARY_DIR}/android-build/assets/styles/hunting.json"
+    COPYONLY)
+
 if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/importedcontent/CMakeLists.txt")
     add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/importedcontent)
 endif()
@@ -27,6 +34,7 @@ qt_add_qml_module(appRevierHub
         QML_FILES
         RESOURCES Resources/Close_draft.png
         QML_FILES
+        QML_FILES android/assets/styles/hunting.json
 )
 
 set_target_properties(appRevierHub PROPERTIES

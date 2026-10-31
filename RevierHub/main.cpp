@@ -10,11 +10,40 @@
 #include <QGeoPositionInfo>
 #include <QQmlContext>
 #include <QDirIterator>
+#include <QFile>
+#include <QSaveFile>
+#include <QUrl>
 
 #include "getlivelocation.hpp"
 #include "trailmanager.hpp"
 
 #include "Database/databasemanager.hpp"
+
+namespace {
+QString installHuntingStyle()
+{
+    QFile source("assets:/styles/hunting.json");
+    if (!source.open(QIODevice::ReadOnly)) {
+        qWarning() << "Failed to read bundled Hunting style:" << source.errorString();
+        return {};
+    }
+
+    const QString stylePath = QStandardPaths::writableLocation(
+        QStandardPaths::AppDataLocation) + "/hunting.json";
+    QSaveFile destination(stylePath);
+    if (!destination.open(QIODevice::WriteOnly)) {
+        qWarning() << "Failed to write Hunting style:" << destination.errorString();
+        return {};
+    }
+
+    if (destination.write(source.readAll()) == -1 || !destination.commit()) {
+        qWarning() << "Failed to install Hunting style:" << destination.errorString();
+        return {};
+    }
+
+    return QUrl::fromLocalFile(stylePath).toString();
+}
+}
 
 int main(int argc, char *argv[])
 {
@@ -54,6 +83,10 @@ int main(int argc, char *argv[])
         qWarning() << "Database failed to initialize!";
         return -1;
     }
+
+    const QString huntingStyleUrl = installHuntingStyle();
+    if (huntingStyleUrl.isEmpty())
+        return -1;
 
     int sessionId = db->startSession();
     if (sessionId < 0) {
@@ -116,6 +149,9 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty(
         "trails",
         &trails);
+    engine.rootContext()->setContextProperty(
+        "huntingStyleUrl",
+        huntingStyleUrl);
 
     engine.loadFromModule("RevierHub", "Main");
 
