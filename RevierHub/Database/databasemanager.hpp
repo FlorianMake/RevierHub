@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QSqlDatabase>
 #include <QGeoCoordinate>
+#include <QVariantList>
 
 class DatabaseManager : public QObject
 {
@@ -31,9 +32,24 @@ public:
     int getTrailPoints();
     QList<QGeoCoordinate> getTrailPoints(int sessionId);
 
+    Q_INVOKABLE QVariantList huntingAreas() const;
+    Q_INVOKABLE int createHuntingArea(const QString &name, const QVariantList &points);
+    Q_INVOKABLE int createHuntingAreaDraft(const QString &name);
+    Q_INVOKABLE bool updateHuntingAreaDraftVertices(int areaId,
+                                                    const QVariantList &points);
+    Q_INVOKABLE bool finishHuntingAreaDraft(int areaId, const QString &name,
+                                            const QVariantList &points);
+    Q_INVOKABLE bool updateHuntingAreaVertices(int areaId, const QVariantList &points);
+    Q_INVOKABLE bool deleteHuntingArea(int areaId);
+
+signals:
+    void huntingAreasChanged();
+
 private:
     QSqlDatabase m_db;
     bool createTables();
+    bool verticesFromVariantList(const QVariantList &values,
+                                 QList<QGeoCoordinate> *points) const;
     int m_currentSession = -1;
 };
 
