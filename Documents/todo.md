@@ -1,5 +1,9 @@
 *** TODOs for RevierHub...
 
+# Hunting-area home view
+When areas are available, use the selected hunting area's bounds to set the initial map center and zoom.
+Use the area's geometric center rather than the device location, so the app does not open at an irrelevant location.
+
 
 # Adding a User feedback
 User needs to be able to send importand data. 
@@ -24,5 +28,4 @@ In any update of the database the user data need to be secured by any costs.
     - json import
     - ... other track data.
     - area import from google maps
-
 

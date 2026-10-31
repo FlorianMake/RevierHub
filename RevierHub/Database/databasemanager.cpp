@@ -51,15 +51,26 @@ bool DatabaseManager::createTables()
             lon REAL NOT NULL,
             timestamp DATETIME NOT NULL,
             dwell_seconds REAL DEFAULT 0,
+            horizontal_accuracy REAL,
             FOREIGN KEY(session_id) REFERENCES sessions(id)
         )
     )");
 
-    // here would be the place to add new version dependent changes.
-    // If we update the database structure for example, we would need to add them as a UPDATE.
-    // Because some previous versions would not contain all table data we need.
-    // This sounds already like a big mess ... lets think about more information we can add to the tables
-    // to have all the information already when we would need them. That's a big todo before first rollout...
+    QSqlQuery tableInfo;
+    tableInfo.exec("PRAGMA table_info(trail_points)");
+    bool hasHorizontalAccuracy = false;
+    while (tableInfo.next()) {
+        if (tableInfo.value(1).toString() == "horizontal_accuracy") {
+            hasHorizontalAccuracy = true;
+            break;
+        }
+    }
+
+    if (!hasHorizontalAccuracy
+        && !q.exec("ALTER TABLE trail_points ADD COLUMN horizontal_accuracy REAL")) {
+        qWarning() << "Failed to add trail point accuracy:" << q.lastError().text();
+        return false;
+    }
 
     return true;
 }
@@ -83,17 +94,21 @@ void DatabaseManager::endSession(int sessionId)
     q.exec();
 }
 
-void DatabaseManager::addTrailPoint(int sessionId, const QGeoCoordinate &coord, double dwellSeconds)
+void DatabaseManager::addTrailPoint(int sessionId, const QGeoCoordinate &coord,
+                                    double horizontalAccuracy, double dwellSeconds)
 {
     QSqlQuery q;
-    q.prepare("INSERT INTO trail_points (session_id, lat, lon, timestamp, dwell_seconds) "
-              "VALUES (?, ?, ?, ?, ?)");
+    q.prepare("INSERT INTO trail_points "
+              "(session_id, lat, lon, timestamp, dwell_seconds, horizontal_accuracy) "
+              "VALUES (?, ?, ?, ?, ?, ?)");
     q.addBindValue(sessionId);
     q.addBindValue(coord.latitude());
     q.addBindValue(coord.longitude());
     q.addBindValue(QDateTime::currentDateTime().toString(Qt::ISODate));
     q.addBindValue(dwellSeconds);
-    q.exec();
+    q.addBindValue(horizontalAccuracy);
+    if (!q.exec())
+        qWarning() << "Failed to add trail point:" << q.lastError().text();
 }
 
 void DatabaseManager::deleteOlderThan(int days)

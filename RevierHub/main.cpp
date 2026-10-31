@@ -80,10 +80,11 @@ int main(int argc, char *argv[])
 
     QObject::connect(
         &liveLocation,
-        &GetLiveLocation::locationChanged,
+        &GetLiveLocation::acceptedPositionChanged,
         db,
-        [db, sessionId](const QGeoCoordinate &coordinate) {
-            db->addTrailPoint(sessionId, coordinate);
+        [db, sessionId](const QGeoCoordinate &coordinate,
+                        double horizontalAccuracy) {
+            db->addTrailPoint(sessionId, coordinate, horizontalAccuracy);
         });
     QObject::connect(
         &liveLocation,
