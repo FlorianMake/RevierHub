@@ -19,7 +19,8 @@ public:
     void endSession(int sessionId);
 
     // Trail points
-    void addTrailPoint(int sessionId, const QGeoCoordinate &coord, double dwellSeconds = 0);
+    void addTrailPoint(int sessionId, const QGeoCoordinate &coord,
+                       double horizontalAccuracy, double dwellSeconds = 0);
 
     // Cleanup
     void deleteOlderThan(int days);

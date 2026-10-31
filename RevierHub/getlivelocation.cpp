@@ -1,5 +1,10 @@
 #include "getlivelocation.hpp"
 
+namespace {
+constexpr double maximumTrailPointAccuracyMeters = 25.0;
+constexpr int requiredInitialAccurateFixes = 3;
+}
+
 GetLiveLocation::GetLiveLocation(QObject *parent)
     : QObject(parent)
 {
@@ -27,6 +32,21 @@ void GetLiveLocation::onPositionUpdated(
     m_currentCoordinate = info.coordinate();
 
     emit locationChanged(m_currentCoordinate);
+
+    if (!info.hasAttribute(QGeoPositionInfo::HorizontalAccuracy)
+        || info.attribute(QGeoPositionInfo::HorizontalAccuracy)
+            > maximumTrailPointAccuracyMeters) {
+        m_accurateFixes = 0;
+    } else {
+        if (m_accurateFixes < requiredInitialAccurateFixes)
+            ++m_accurateFixes;
+
+        if (m_accurateFixes == requiredInitialAccurateFixes) {
+            emit acceptedPositionChanged(
+                m_currentCoordinate,
+                info.attribute(QGeoPositionInfo::HorizontalAccuracy));
+        }
+    }
 
     if(shallRecenter()) {
         m_currentCenter = info.coordinate();

@@ -32,6 +32,8 @@ public:
 
 signals:
     void locationChanged(const QGeoCoordinate &coordinate);
+    void acceptedPositionChanged(const QGeoCoordinate &coordinate,
+                                 double horizontalAccuracy);
     void centerChanged(const QGeoCoordinate &coordinate);
 
 private slots:
@@ -44,6 +46,7 @@ private:
     QGeoPositionInfoSource *m_source;
     QGeoCoordinate m_currentCoordinate;
     QGeoCoordinate m_currentCenter;
+    int m_accurateFixes = 0;
 };
 
 

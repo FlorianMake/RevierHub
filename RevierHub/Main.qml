@@ -98,6 +98,9 @@ ApplicationWindow {
         property int mapStyle: 0
         property bool showDistanceRings: true
         property real mapZoomLevel: 18
+        property bool hasLastMapPosition: false
+        property real lastMapLatitude: 0
+        property real lastMapLongitude: 0
     }
 
     property int mapStyle: viewSettings.mapStyle
@@ -118,7 +121,11 @@ ApplicationWindow {
         id: map
         anchors.fill: parent
         plugin: mapPlugin
-        center: liveLocation.newCenter
+        center: viewSettings.hasLastMapPosition
+                ? QtPositioning.coordinate(
+                      viewSettings.lastMapLatitude,
+                      viewSettings.lastMapLongitude)
+                : liveLocation.newCenter
         zoomLevel: Math.max(11, Math.min(19, viewSettings.mapZoomLevel))
 
         onSupportedMapTypesChanged: mainWindow.applyMapStyle()
@@ -213,6 +220,16 @@ ApplicationWindow {
     function applyMapStyle() {
         if (mapStyle >= 0 && mapStyle < map.supportedMapTypes.length)
             map.activeMapType = map.supportedMapTypes[mapStyle]
+    }
+
+    Connections {
+        target: liveLocation
+
+        function onAcceptedPositionChanged(coordinate) {
+            viewSettings.lastMapLatitude = coordinate.latitude
+            viewSettings.lastMapLongitude = coordinate.longitude
+            viewSettings.hasLastMapPosition = true
+        }
     }
 
     StackView {
