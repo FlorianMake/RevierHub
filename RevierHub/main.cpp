@@ -15,12 +15,27 @@
 #include <QSaveFile>
 #include <QUrl>
 
+#ifdef Q_OS_ANDROID
+#include <QJniObject>
+#endif
+
 #include "getlivelocation.hpp"
 #include "trailmanager.hpp"
 
 #include "Database/databasemanager.hpp"
 
 namespace {
+#ifdef Q_OS_ANDROID
+void startLocationTrackingService()
+{
+    QJniObject::callStaticMethod<void>(
+        "com/revierhub/app/LocationTrackingService",
+        "start",
+        "(Landroid/content/Context;)V",
+        QNativeInterface::QAndroidApplication::context());
+}
+#endif
+
 QString installHuntingStyle()
 {
     QFile source("assets:/styles/hunting.json");
@@ -82,6 +97,9 @@ int main(int argc, char *argv[])
             if (permission.status() == Qt::PermissionStatus::Granted)
             {
                 qDebug() << "Location permission granted";
+#ifdef Q_OS_ANDROID
+                startLocationTrackingService();
+#endif
             }
             else
             {
