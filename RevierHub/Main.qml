@@ -57,6 +57,12 @@ ApplicationWindow {
                 onToggled: viewSettings.showDistanceRings = checked
             }
 
+            Switch {
+                text: "Show weather overlay"
+                checked: mainWindow.showWeatherOverlay
+                onToggled: viewSettings.showWeatherOverlay = checked
+            }
+
             Label {
                 text: "Hunting areas"
                 font.bold: true
@@ -140,6 +146,7 @@ ApplicationWindow {
         category: "view"
         property int mapStyle: 0
         property bool showDistanceRings: true
+        property bool showWeatherOverlay: true
         property real mapZoomLevel: 18
         property bool hasLastMapPosition: false
         property real lastMapLatitude: 0
@@ -151,6 +158,7 @@ ApplicationWindow {
 
     property int mapStyle: viewSettings.mapStyle
     property bool showDistanceRings: viewSettings.showDistanceRings
+    property bool showWeatherOverlay: viewSettings.showWeatherOverlay
     property var huntingAreas: []
     property int primaryAreaId: viewSettings.primaryHuntingAreaId
     property bool drawingArea: false
@@ -635,6 +643,58 @@ ApplicationWindow {
             }
         }
 
+    }
+
+    Rectangle {
+        id: weatherOverlay
+        z: 10
+        visible: mainWindow.showWeatherOverlay && weather.available
+        anchors.top: parent.top
+        anchors.right: parent.right
+        anchors.topMargin: 16
+        anchors.rightMargin: parent.width > parent.height ? 80 : 16
+        width: weatherColumn.implicitWidth + 24
+        height: weatherColumn.implicitHeight + 20
+        radius: 8
+        color: "#AA202020"
+
+        ColumnLayout {
+            id: weatherColumn
+            anchors.fill: parent
+            anchors.margins: 10
+            spacing: 4
+
+            RowLayout {
+                spacing: 8
+
+                Text {
+                    text: "\u2191"
+                    color: "white"
+                    font.pixelSize: Math.min(42, Math.max(20, 20 + weather.windSpeed))
+                    rotation: (weather.windDirection + 180) % 360
+                    transformOrigin: Item.Center
+                }
+
+                Label {
+                    text: "Wind (10 m) " + Math.round(weather.windSpeed) + " km/h"
+                    color: "white"
+                    font.bold: true
+                }
+            }
+
+            Label {
+                text: "Rain " + weather.precipitationProbability + "% \u00b7 "
+                      + weather.precipitation.toFixed(1) + " mm"
+                color: "white"
+            }
+
+            Label {
+                text: "Weather: Open-Meteo"
+                color: "white"
+                opacity: 0.7
+                font.pixelSize: 10
+            }
+        }
     }
 
     Rectangle {

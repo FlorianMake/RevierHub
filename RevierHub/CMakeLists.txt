@@ -3,7 +3,7 @@ project(RevierHub VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(QT_QML_GENERATE_QMLLS_INI ON)
-find_package(Qt6 REQUIRED COMPONENTS Quick Positioning Location Sql)
+find_package(Qt6 REQUIRED COMPONENTS Quick Positioning Location Network Sql)
 qt_standard_project_setup(REQUIRES 6.7)
 set(QMapLibre_DIR /home/retno/Development/maplibre-qt-prebuilt/maplibre-native-qt_v3.0.0_Qt6.7.3_Android/arm64-v8a/lib/cmake/QMapLibre)
 find_package(QMapLibre REQUIRED COMPONENTS Core Location)
@@ -24,6 +24,7 @@ qt_add_qml_module(appRevierHub
     URI RevierHub
     QML_FILES Main.qml
     SOURCES getlivelocation.hpp getlivelocation.cpp
+    SOURCES weathermanager.hpp weathermanager.cpp
     SOURCES
     SOURCES Database/databasemanager.hpp Database/databasemanager.cpp
     SOURCES trailmanager.hpp trailmanager.cpp
@@ -53,6 +54,7 @@ target_link_libraries(appRevierHub
     PRIVATE Qt6::Quick
     PRIVATE Qt6::Positioning
     PRIVATE Qt6::Location
+    PRIVATE Qt6::Network
     PRIVATE Qt6::Sql
     PRIVATE QMapLibre::Core
     PRIVATE QMapLibre::Location
