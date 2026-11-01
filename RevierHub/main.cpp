@@ -21,6 +21,7 @@
 
 #include "getlivelocation.hpp"
 #include "trailmanager.hpp"
+#include "weathermanager.hpp"
 
 #include "Database/databasemanager.hpp"
 
@@ -131,6 +132,7 @@ int main(int argc, char *argv[])
     app.addLibraryPath(libDir);
 
     GetLiveLocation liveLocation;
+    WeatherManager weather;
 
     // Also try setting QT_PLUGIN_PATH env var
     qputenv("QT_PLUGIN_PATH", libDir.toUtf8());
@@ -156,6 +158,13 @@ int main(int argc, char *argv[])
             trails.getPoints();
         });
     QObject::connect(
+        &liveLocation,
+        &GetLiveLocation::acceptedPositionChanged,
+        &weather,
+        [&weather](const QGeoCoordinate &coordinate, double) {
+            weather.updateLocation(coordinate);
+        });
+    QObject::connect(
         &app,
         &QCoreApplication::aboutToQuit,
         db,
@@ -178,6 +187,9 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty(
         "trails",
         &trails);
+    engine.rootContext()->setContextProperty(
+        "weather",
+        &weather);
     engine.rootContext()->setContextProperty(
         "database",
         db);
