@@ -14,6 +14,7 @@
 #include <QFile>
 #include <QSaveFile>
 #include <QUrl>
+#include <QStringList>
 
 #ifdef Q_OS_ANDROID
 #include <QJniObject>
@@ -26,6 +27,8 @@
 #include "Database/databasemanager.hpp"
 
 namespace {
+constexpr char mapTilerApiKey[] = "BCUiLcvKmomeRGpKOIea";
+
 #ifdef Q_OS_ANDROID
 void startLocationTrackingService()
 {
@@ -37,7 +40,7 @@ void startLocationTrackingService()
 }
 #endif
 
-QString installHuntingStyle()
+QStringList installHuntingStyles()
 {
     QFile source("assets:/styles/hunting.json");
     if (!source.open(QIODevice::ReadOnly)) {
@@ -55,19 +58,43 @@ QString installHuntingStyle()
         return {};
     }
 
-    const QString stylePath = dataPath + "/hunting.json";
-    QSaveFile destination(stylePath);
-    if (!destination.open(QIODevice::WriteOnly)) {
-        qWarning() << "Failed to write Hunting style:" << destination.errorString();
-        return {};
+    const QByteArray styleTemplate = source.readAll();
+    const struct {
+        QString fileName;
+        bool showContours;
+        bool showStreetNames;
+    } variants[] = {
+        { "hunting.json", false, true },
+        { "hunting-contours.json", true, true },
+        { "hunting-minimal.json", false, false },
+        { "hunting-contours-minimal.json", true, false }
+    };
+
+    QStringList styleUrls;
+    for (const auto &variant : variants) {
+        QByteArray style = styleTemplate;
+        style.replace("__MAPTILER_API_KEY__", mapTilerApiKey);
+        style.replace("__CONTOUR_VISIBILITY__",
+                      variant.showContours ? "visible" : "none");
+        style.replace("__STREET_NAMES_VISIBILITY__",
+                      variant.showStreetNames ? "visible" : "none");
+
+        const QString stylePath = dataPath + "/" + variant.fileName;
+        QSaveFile destination(stylePath);
+        if (!destination.open(QIODevice::WriteOnly)) {
+            qWarning() << "Failed to write Hunting style:" << destination.errorString();
+            return {};
+        }
+
+        if (destination.write(style) != style.size() || !destination.commit()) {
+            qWarning() << "Failed to install Hunting style:" << destination.errorString();
+            return {};
+        }
+
+        styleUrls.append(QUrl::fromLocalFile(stylePath).toString());
     }
 
-    if (destination.write(source.readAll()) == -1 || !destination.commit()) {
-        qWarning() << "Failed to install Hunting style:" << destination.errorString();
-        return {};
-    }
-
-    return QUrl::fromLocalFile(stylePath).toString();
+    return styleUrls;
 }
 }
 
@@ -114,11 +141,24 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    const QString huntingStyleUrl = installHuntingStyle();
-    if (huntingStyleUrl.isEmpty())
+    const QStringList huntingStyleUrls = installHuntingStyles();
+    if (huntingStyleUrls.size() != 4)
         return -1;
 
-    int sessionId = db->startSession();
+    constexpr int sessionResumeWindowMinutes = 150;
+    int sessionId = -1;
+    switch (db->resumeSessionWithRecentPoint(
+                sessionResumeWindowMinutes, sessionId)) {
+    case DatabaseManager::SessionResumeResult::Resumed:
+        qDebug() << "Resuming trail session" << sessionId;
+        break;
+    case DatabaseManager::SessionResumeResult::NoResumableSession:
+        sessionId = db->startSession();
+        break;
+    case DatabaseManager::SessionResumeResult::Error:
+        qWarning() << "Failed to check for a resumable trail session";
+        return -1;
+    }
     if (sessionId < 0) {
         qWarning() << "Failed to start trail session";
         return -1;
@@ -194,8 +234,11 @@ int main(int argc, char *argv[])
         "database",
         db);
     engine.rootContext()->setContextProperty(
-        "huntingStyleUrl",
-        huntingStyleUrl);
+        "huntingStyleUrls",
+        huntingStyleUrls);
+    engine.rootContext()->setContextProperty(
+        "mapTilerApiKey",
+        mapTilerApiKey);
 
     engine.loadFromModule("RevierHub", "Main");
 

@@ -16,6 +16,10 @@
         "openmaptiles": {
             "type": "vector",
             "url": "https://tiles.openfreemap.org/planet"
+        },
+        "contours": {
+            "type": "vector",
+            "url": "https://api.maptiler.com/tiles/contours/tiles.json?key=__MAPTILER_API_KEY__"
         }
     },
     "glyphs": "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
@@ -127,6 +131,70 @@
             }
         },
         {
+            "id": "contour-lines",
+            "type": "line",
+            "source": "contours",
+            "source-layer": "contour",
+            "minzoom": 12,
+            "layout": {
+                "visibility": "__CONTOUR_VISIBILITY__",
+                "line-cap": "round",
+                "line-join": "round"
+            },
+            "paint": {
+                "line-color": "#806b4e",
+                "line-opacity": 0.55,
+                "line-width": [
+                    "interpolate", ["linear"], ["zoom"],
+                    12, 0.5,
+                    16, 1.1
+                ]
+            }
+        },
+        {
+            "id": "contour-labels",
+            "type": "symbol",
+            "source": "contours",
+            "source-layer": "contour",
+            "minzoom": 14,
+            "filter": ["==", ["get", "nth_line"], 10],
+            "layout": {
+                "visibility": "__CONTOUR_VISIBILITY__",
+                "symbol-placement": "line",
+                "text-field": ["concat", ["to-string", ["get", "height"]], " m"],
+                "text-font": ["Noto Sans Regular"],
+                "text-size": 11,
+                "text-keep-upright": true,
+                "text-max-angle": 30
+            },
+            "paint": {
+                "text-color": "#806b4e",
+                "text-halo-color": "#efe7d5",
+                "text-halo-width": 1
+            }
+        },
+        {
+            "id": "peak-labels",
+            "type": "symbol",
+            "source": "openmaptiles",
+            "source-layer": "mountain_peak",
+            "minzoom": 12,
+            "filter": ["all", ["has", "name"], ["has", "ele"]],
+            "layout": {
+                "visibility": "__CONTOUR_VISIBILITY__",
+                "text-field": ["concat", ["get", "name"], "\n",
+                               ["to-string", ["get", "ele"]], " m"],
+                "text-font": ["Noto Sans Regular"],
+                "text-size": 11,
+                "text-max-width": 10
+            },
+            "paint": {
+                "text-color": "#4d3d2c",
+                "text-halo-color": "#efe7d5",
+                "text-halo-width": 1
+            }
+        },
+        {
             "id": "buildings",
             "type": "fill",
             "source": "openmaptiles",
@@ -215,6 +283,31 @@
                     14, 2,
                     18, 7
                 ]
+            }
+        },
+        {
+            "id": "street-names",
+            "type": "symbol",
+            "source": "openmaptiles",
+            "source-layer": "transportation_name",
+            "minzoom": 13,
+            "layout": {
+                "visibility": "__STREET_NAMES_VISIBILITY__",
+                "symbol-placement": "line",
+                "text-field": ["get", "name"],
+                "text-font": ["Noto Sans Regular"],
+                "text-size": [
+                    "interpolate", ["linear"], ["zoom"],
+                    13, 10,
+                    16, 13
+                ],
+                "text-keep-upright": true,
+                "text-max-angle": 30
+            },
+            "paint": {
+                "text-color": "#4d3d2c",
+                "text-halo-color": "#efe7d5",
+                "text-halo-width": 1
             }
         },
         {
