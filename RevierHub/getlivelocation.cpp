@@ -65,7 +65,6 @@ void GetLiveLocation::onPositionUpdated(
         || info.attribute(QGeoPositionInfo::HorizontalAccuracy)
             > maximumTrailPointAccuracyMeters) {
         m_accurateFixes = 0;
-        m_hasGpsLock = false;
     } else {
         if (m_accurateFixes < requiredInitialAccurateFixes)
             ++m_accurateFixes;
