@@ -11,8 +11,12 @@ import QtCore
 ApplicationWindow {
     id:mainWindow
     visible: true
-    width: Screen.width
-    height: Screen.height
+    property bool isPortrait: Screen.orientation === Qt.PortraitOrientation
+                              || Screen.orientation === Qt.InvertedPortraitOrientation
+    width: isPortrait ? Math.min(Screen.width, Screen.height)
+                      : Math.max(Screen.width, Screen.height)
+    height: isPortrait ? Math.max(Screen.width, Screen.height)
+                       : Math.min(Screen.width, Screen.height)
 
 
 
@@ -20,12 +24,19 @@ ApplicationWindow {
         id: settingsMenu
         onCloseRequested: menuStack.pop()
         onMapSettingsRequested: menuStack.push(mapSettingsPage)
+        onHuntingAreasRequested: menuStack.push(huntingAreasSettingsPage)
     }
 
     MapSettingsPage {
         id: mapSettingsPage
         mainWindow: mainWindow
         viewSettings: viewSettings
+        onCloseRequested: menuStack.pop()
+    }
+
+    HuntingAreasSettingsPage {
+        id: huntingAreasSettingsPage
+        mainWindow: mainWindow
         onCloseRequested: menuStack.pop()
     }
 
@@ -67,6 +78,8 @@ ApplicationWindow {
         property bool showDistanceRing300: false
         property bool showDistanceRing500: false
         property bool showWeatherOverlay: true
+        property bool showFieldOfView: true
+        property bool showWindIndicator: true
         property bool showContourLines: false
         property bool showStreetNames: true
         property real mapZoomLevel: 18
@@ -89,6 +102,8 @@ ApplicationWindow {
     property bool showDistanceRing300: viewSettings.showDistanceRing300
     property bool showDistanceRing500: viewSettings.showDistanceRing500
     property bool showWeatherOverlay: viewSettings.showWeatherOverlay
+    property bool showFieldOfView: viewSettings.showFieldOfView
+    property bool showWindIndicator: viewSettings.showWindIndicator
     property bool showContourLines: viewSettings.showContourLines
     property bool showStreetNames: viewSettings.showStreetNames
     property var huntingAreas: []
@@ -355,6 +370,14 @@ ApplicationWindow {
         anchors.fill: parent
         plugin: mapPlugin
         zoomLevel: Math.max(11, Math.min(19, viewSettings.mapZoomLevel))
+        bearing: 0
+        property bool hasDeviceHeading: liveLocation.hasGpsLock
+                                        && isFinite(liveLocation.heading)
+        property real windFlowDirection: (weather.windDirection + 180) % 360
+        property real windArrowLength: Math.min(110,
+                                                Math.max(40, weather.windSpeed * 2.5))
+        property bool showWindArrow: weather.available && hasDeviceHeading
+                                       && mainWindow.showWindIndicator
 
         onSupportedMapTypesChanged: mainWindow.applyMapStyle()
         Component.onCompleted: mainWindow.recenterToLastAcceptedPosition()
@@ -563,6 +586,62 @@ ApplicationWindow {
                 radius: 5
             }
         }
+
+        MapQuickItem {
+            coordinate: liveLocation.coordinate
+            anchorPoint.x: windCanvas.width / 2
+            anchorPoint.y: windCanvas.height / 2
+            visible: map.showWindArrow
+
+            sourceItem: Canvas {
+                id: windCanvas
+                width: 540
+                height: 540
+                property real deviceHeading: liveLocation.heading
+                property real flowDirection: map.windFlowDirection
+                property real arrowLength: map.windArrowLength
+
+                onDeviceHeadingChanged: requestPaint()
+                onFlowDirectionChanged: requestPaint()
+                onArrowLengthChanged: requestPaint()
+                onPaint: {
+                    var context = getContext("2d")
+                    context.clearRect(0, 0, width, height)
+                    context.strokeStyle = "#75A9C6"
+                    context.lineCap = "round"
+                    context.lineJoin = "round"
+
+                    var center = { x: width / 2, y: height / 2 }
+                    function pointFrom(point, angle, distance) {
+                        var radians = (angle - 90) * Math.PI / 180
+                        return {
+                            x: point.x + Math.cos(radians) * distance,
+                            y: point.y + Math.sin(radians) * distance
+                        }
+                    }
+
+                    var tail = pointFrom(
+                        center, deviceHeading + 180, arrowLength + 12)
+                    var tip = pointFrom(tail, flowDirection, arrowLength)
+                    var arrowHeadLength = Math.min(18, arrowLength * 0.25)
+
+                    context.lineWidth = 2.5
+                    context.beginPath()
+                    context.moveTo(tail.x, tail.y)
+                    context.lineTo(tip.x, tip.y)
+                    context.moveTo(
+                        pointFrom(tip, flowDirection + 150, arrowHeadLength).x,
+                        pointFrom(tip, flowDirection + 150, arrowHeadLength).y)
+                    context.lineTo(tip.x, tip.y)
+                    context.lineTo(
+                        pointFrom(tip, flowDirection + 210, arrowHeadLength).x,
+                        pointFrom(tip, flowDirection + 210, arrowHeadLength).y)
+                    context.stroke()
+
+                }
+            }
+        }
+
         MapPolyline {
             line.width: 3
             line.color: "#009E75"
@@ -877,6 +956,81 @@ ApplicationWindow {
         }
     }
 
+    Canvas {
+        id: fieldOfViewOverlay
+        anchors.fill: map
+        z: 0
+        visible: map.hasDeviceHeading && mainWindow.showFieldOfView
+        property real deviceHeading: liveLocation.heading
+
+        onDeviceHeadingChanged: requestPaint()
+        onWidthChanged: requestPaint()
+        onHeightChanged: requestPaint()
+        onVisibleChanged: requestPaint()
+        onPaint: {
+            var context = getContext("2d")
+            context.clearRect(0, 0, width, height)
+
+            var hunterPosition = map.fromCoordinate(liveLocation.coordinate)
+            var halfAngle = 45
+            function point(angle, distance) {
+                var radians = (angle - 90) * Math.PI / 180
+                return {
+                    x: hunterPosition.x + Math.cos(radians) * distance,
+                    y: hunterPosition.y + Math.sin(radians) * distance
+                }
+            }
+
+            var fillRadius = Math.sqrt(width * width + height * height)
+            var fillLeftPoint = point(deviceHeading - halfAngle, fillRadius)
+            var fillRightPoint = point(deviceHeading + halfAngle, fillRadius)
+            context.fillStyle = "rgba(229, 244, 255, 0.14)"
+            context.beginPath()
+            context.moveTo(hunterPosition.x, hunterPosition.y)
+            context.lineTo(fillLeftPoint.x, fillLeftPoint.y)
+            context.lineTo(fillRightPoint.x, fillRightPoint.y)
+            context.closePath()
+            context.fill()
+
+            function drawBoundary(endPoint) {
+                var gradient = context.createLinearGradient(
+                    hunterPosition.x, hunterPosition.y, endPoint.x, endPoint.y)
+                gradient.addColorStop(0, "rgba(124, 133, 140, 1)")
+                gradient.addColorStop(1, "rgba(124, 133, 140, 0.45)")
+                context.strokeStyle = gradient
+                context.beginPath()
+                context.moveTo(hunterPosition.x, hunterPosition.y)
+                context.lineTo(endPoint.x, endPoint.y)
+                context.stroke()
+            }
+
+            context.lineWidth = 2
+            context.lineCap = "round"
+            drawBoundary(point(deviceHeading - halfAngle, 121))
+            drawBoundary(point(deviceHeading + halfAngle, 121))
+        }
+
+        Connections {
+            target: map
+
+            function onCenterChanged() {
+                fieldOfViewOverlay.requestPaint()
+            }
+
+            function onZoomLevelChanged() {
+                fieldOfViewOverlay.requestPaint()
+            }
+        }
+
+        Connections {
+            target: liveLocation
+
+            function onLocationChanged() {
+                fieldOfViewOverlay.requestPaint()
+            }
+        }
+    }
+
     function updateStyle(styleIndex) {
         viewSettings.mapStyle = styleIndex
     }
@@ -939,71 +1093,63 @@ ApplicationWindow {
 
     Component.onCompleted: reloadHuntingAreas()
 
-    Button {
-        id: repositionButton
-        width: 56
-        height: 56
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 82
-        z: 1
+    Item {
+        id: mapControls
+        parent: Overlay.overlay
+        anchors.fill: parent
+        visible: menuStack.depth <= 1
 
-        onClicked: {
-            if (mainWindow.areaInteractionActive)
-                return
-            viewSettings.repositioningEnabled = !viewSettings.repositioningEnabled
-            if (viewSettings.repositioningEnabled)
-                recenterToLastAcceptedPosition()
-        }
+        Item {
+            id: repositionButton
+            width: 68
+            height: 68
+            x: 15
+            y: 114
+            z: 1
 
-        background: Item {}
-
-        contentItem: Item {
             opacity: viewSettings.repositioningEnabled ? 1 : 0.45
 
             Rectangle {
                 width: 3
-                height: 42
+                height: 48
                 anchors.centerIn: parent
-                color: "white"
+                color: "#CC4A4A4A"
             }
 
             Rectangle {
-                width: 42
+                width: 48
                 height: 3
                 anchors.centerIn: parent
-                color: "white"
+                color: "#CC4A4A4A"
             }
 
             Rectangle {
-                width: 11
-                height: 11
-                radius: 6
+                width: 13
+                height: 13
+                radius: width / 2
                 anchors.centerIn: parent
                 color: viewSettings.repositioningEnabled ? "#E85A5A" : "white"
             }
+
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    if (mainWindow.areaInteractionActive)
+                        return
+                    viewSettings.repositioningEnabled = !viewSettings.repositioningEnabled
+                    if (viewSettings.repositioningEnabled)
+                        recenterToLastAcceptedPosition()
+                }
+            }
         }
-    }
 
-    Popup {
-        id: zoomSliderOverlay
-        parent: Overlay.overlay
-        visible: menuStack.depth === 1
-        modal: false
-        focus: false
-        closePolicy: Popup.NoAutoClose
-        padding: 0
-        property bool isLandscape: parent.width > parent.height
-        width: zoomSlider.implicitWidth
-        height: parent.height * (isLandscape ? 0.55 : 0.33)
-        x: parent.width - width - (isLandscape ? 102 : 15)
-        y: parent.height - height - (isLandscape ? 40 : 82)
-
-        background: Item {}
-
-        contentItem: Slider {
+        Slider {
             id: zoomSlider
-            anchors.fill: parent
+            width: 60
+            height: Math.min(240, parent.height - y - 24)
+            x: repositionButton.x + (repositionButton.width - width) / 2
+            y: repositionButton.y + repositionButton.height + 24
+            z: 1
             orientation: Qt.Vertical
             from: 11
             to: 19
@@ -1014,7 +1160,7 @@ ApplicationWindow {
                 x: zoomSlider.leftPadding
                    + (zoomSlider.availableWidth - width) / 2
                 y: zoomSlider.topPadding
-                width: 10
+                width: 12
                 height: zoomSlider.availableHeight
                 radius: width / 2
                 color: "#B33A3A3A"
@@ -1025,8 +1171,8 @@ ApplicationWindow {
                    + (zoomSlider.availableWidth - width) / 2
                 y: zoomSlider.topPadding
                    + zoomSlider.visualPosition * (zoomSlider.availableHeight - height)
-                width: 28
-                height: 28
+                width: 42
+                height: 42
                 radius: width / 2
                 color: "#CC4A4A4A"
                 border.color: "#B32D2D2D"

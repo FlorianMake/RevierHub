@@ -5,6 +5,7 @@
 #include <QGeoCoordinate>
 #include <QGeoPositionInfoSource>
 #include <QGeoPositionInfo>
+#include <limits>
 
 class GetLiveLocation : public QObject
 {
@@ -12,6 +13,8 @@ class GetLiveLocation : public QObject
 
     Q_PROPERTY(QGeoCoordinate coordinate READ coordinate NOTIFY locationChanged)
     Q_PROPERTY(QGeoCoordinate newCenter READ newCenter NOTIFY centerChanged)
+    Q_PROPERTY(double heading READ heading NOTIFY locationChanged)
+    Q_PROPERTY(bool hasGpsLock READ hasGpsLock NOTIFY locationChanged)
 
 public:
 
@@ -23,6 +26,16 @@ public:
     QGeoCoordinate newCenter() const
     {
         return m_currentCenter;
+    }
+
+    double heading() const
+    {
+        return m_heading;
+    }
+
+    bool hasGpsLock() const
+    {
+        return m_hasGpsLock;
     }
 
     explicit GetLiveLocation(QObject *parent = nullptr);
@@ -38,6 +51,7 @@ signals:
 
 private slots:
     void onPositionUpdated(const QGeoPositionInfo &info);
+    void updateHeading(double heading);
 
 private:
     bool shallRecenter();
@@ -46,6 +60,8 @@ private:
     QGeoPositionInfoSource *m_source;
     QGeoCoordinate m_currentCoordinate;
     QGeoCoordinate m_currentCenter;
+    double m_heading = std::numeric_limits<double>::quiet_NaN();
+    bool m_hasGpsLock = false;
     int m_accurateFixes = 0;
 };
 

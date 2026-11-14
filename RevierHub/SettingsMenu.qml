@@ -7,6 +7,7 @@ Item {
 
     signal closeRequested()
     signal mapSettingsRequested()
+    signal huntingAreasRequested()
 
     Rectangle {
         x: 30
@@ -32,6 +33,11 @@ Item {
             Button {
                 text: "Map settings"
                 onClicked: settingsMenu.mapSettingsRequested()
+            }
+
+            Button {
+                text: "Hunting areas"
+                onClicked: settingsMenu.huntingAreasRequested()
             }
 
             Button {

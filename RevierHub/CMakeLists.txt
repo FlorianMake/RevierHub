@@ -22,7 +22,7 @@ qt_add_executable(
 )
 qt_add_qml_module(appRevierHub
     URI RevierHub
-    QML_FILES Main.qml SettingsMenu.qml MapSettingsPage.qml
+    QML_FILES Main.qml SettingsMenu.qml MapSettingsPage.qml HuntingAreasSettingsPage.qml
     SOURCES getlivelocation.hpp getlivelocation.cpp
     SOURCES weathermanager.hpp weathermanager.cpp
     SOURCES

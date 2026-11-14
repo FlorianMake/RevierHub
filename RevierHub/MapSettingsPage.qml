@@ -140,46 +140,20 @@ Item {
             }
 
             Label {
-                text: "Hunting areas"
+                text: "Position indicators"
                 font.bold: true
             }
 
-            Button {
-                text: mainWindow.drawingArea ? "Drawing area" : "Draw area"
-                enabled: !mainWindow.drawingArea && !mainWindow.editingArea
-                onClicked: mainWindow.beginDrawing()
+            Switch {
+                text: "Show field of view"
+                checked: mainWindow.showFieldOfView
+                onToggled: viewSettings.showFieldOfView = checked
             }
 
-            Repeater {
-                model: mainWindow.huntingAreas
-
-                delegate: RowLayout {
-                    required property var modelData
-                    Layout.maximumWidth: 330
-
-                    CheckBox {
-                        text: modelData.name
-                        checked: mainWindow.isAreaVisible(modelData.id)
-                        onToggled: mainWindow.setAreaVisible(modelData.id, checked)
-                    }
-
-                    RadioButton {
-                        text: "Primary"
-                        checked: mainWindow.primaryAreaId === modelData.id
-                        enabled: mainWindow.isAreaVisible(modelData.id)
-                        onClicked: mainWindow.setPrimaryArea(modelData.id)
-                    }
-
-                    Button {
-                        text: "Edit"
-                        onClicked: mainWindow.beginEditing(modelData)
-                    }
-
-                    Button {
-                        text: "Delete"
-                        onClicked: mainWindow.removeArea(modelData.id)
-                    }
-                }
+            Switch {
+                text: "Show wind indicator"
+                checked: mainWindow.showWindIndicator
+                onToggled: viewSettings.showWindIndicator = checked
             }
 
             Button {
