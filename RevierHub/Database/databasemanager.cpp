@@ -146,6 +146,55 @@ int DatabaseManager::startSession()
     return m_currentSession;
 }
 
+DatabaseManager::SessionResumeResult
+DatabaseManager::resumeSessionWithRecentPoint(int maximumAgeMinutes,
+                                              int &sessionId)
+{
+    if (maximumAgeMinutes <= 0) {
+        qWarning() << "Session resume window must be positive";
+        return SessionResumeResult::Error;
+    }
+
+    QSqlQuery q;
+    if (!q.exec(R"(
+        SELECT sessions.id,
+               MAX(CAST(strftime('%s', trail_points.timestamp) AS INTEGER))
+        FROM sessions
+        JOIN trail_points ON trail_points.session_id = sessions.id
+        WHERE sessions.ended_at IS NULL
+        GROUP BY sessions.id
+    )")) {
+        qWarning() << "Failed to find resumable trail session:" << q.lastError().text();
+        return SessionResumeResult::Error;
+    }
+
+    int mostRecentSessionId = -1;
+    qint64 mostRecentPointSeconds = -1;
+    while (q.next()) {
+        bool isEpochTimestamp = false;
+        const qint64 latestPointSeconds = q.value(1).toLongLong(&isEpochTimestamp);
+        if (!isEpochTimestamp) {
+            qWarning() << "Ignoring trail session with an invalid latest point timestamp";
+            continue;
+        }
+
+        if (latestPointSeconds > mostRecentPointSeconds) {
+            mostRecentPointSeconds = latestPointSeconds;
+            mostRecentSessionId = q.value(0).toInt();
+        }
+    }
+
+    if (mostRecentSessionId < 0
+        || QDateTime::currentSecsSinceEpoch() - mostRecentPointSeconds
+            > maximumAgeMinutes * 60) {
+        return SessionResumeResult::NoResumableSession;
+    }
+
+    m_currentSession = mostRecentSessionId;
+    sessionId = m_currentSession;
+    return SessionResumeResult::Resumed;
+}
+
 void DatabaseManager::endSession(int sessionId)
 {
     QSqlQuery q;

@@ -10,6 +10,12 @@ class DatabaseManager : public QObject
 {
     Q_OBJECT
 public:
+    enum class SessionResumeResult {
+        Resumed,
+        NoResumableSession,
+        Error
+    };
+
     explicit DatabaseManager(QObject *parent = nullptr);
     ~DatabaseManager();
 
@@ -17,6 +23,8 @@ public:
 
     // Sessions
     int startSession();
+    SessionResumeResult resumeSessionWithRecentPoint(int maximumAgeMinutes,
+                                                     int &sessionId);
     void endSession(int sessionId);
 
     // Trail points

@@ -118,7 +118,20 @@ int main(int argc, char *argv[])
     if (huntingStyleUrl.isEmpty())
         return -1;
 
-    int sessionId = db->startSession();
+    constexpr int sessionResumeWindowMinutes = 150;
+    int sessionId = -1;
+    switch (db->resumeSessionWithRecentPoint(
+                sessionResumeWindowMinutes, sessionId)) {
+    case DatabaseManager::SessionResumeResult::Resumed:
+        qDebug() << "Resuming trail session" << sessionId;
+        break;
+    case DatabaseManager::SessionResumeResult::NoResumableSession:
+        sessionId = db->startSession();
+        break;
+    case DatabaseManager::SessionResumeResult::Error:
+        qWarning() << "Failed to check for a resumable trail session";
+        return -1;
+    }
     if (sessionId < 0) {
         qWarning() << "Failed to start trail session";
         return -1;
