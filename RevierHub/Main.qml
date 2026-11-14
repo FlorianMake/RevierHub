@@ -925,6 +925,7 @@ ApplicationWindow {
 
     StackView {
         id: menuStack
+        z: 20
         anchors.fill: parent
         initialItem: mainMenue        // <-- object reference now, not "menues/MainMenue.qml"
     }
@@ -987,7 +988,7 @@ ApplicationWindow {
     Popup {
         id: zoomSliderOverlay
         parent: Overlay.overlay
-        visible: true
+        visible: menuStack.depth === 1
         modal: false
         focus: false
         closePolicy: Popup.NoAutoClose
