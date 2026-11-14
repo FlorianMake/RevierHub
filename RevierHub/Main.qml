@@ -58,7 +58,17 @@ ApplicationWindow {
         category: "view"
         property int mapStyle: 0
         property bool showDistanceRings: true
+        property bool showDistanceRing40: false
+        property bool showDistanceRing50: false
+        property bool showDistanceRing75: false
+        property bool showDistanceRing100: true
+        property bool showDistanceRing150: false
+        property bool showDistanceRing200: true
+        property bool showDistanceRing300: false
+        property bool showDistanceRing500: false
         property bool showWeatherOverlay: true
+        property bool showContourLines: false
+        property bool showStreetNames: true
         property real mapZoomLevel: 18
         property bool hasLastMapPosition: false
         property real lastMapLatitude: 0
@@ -70,7 +80,17 @@ ApplicationWindow {
 
     property int mapStyle: viewSettings.mapStyle
     property bool showDistanceRings: viewSettings.showDistanceRings
+    property bool showDistanceRing40: viewSettings.showDistanceRing40
+    property bool showDistanceRing50: viewSettings.showDistanceRing50
+    property bool showDistanceRing75: viewSettings.showDistanceRing75
+    property bool showDistanceRing100: viewSettings.showDistanceRing100
+    property bool showDistanceRing150: viewSettings.showDistanceRing150
+    property bool showDistanceRing200: viewSettings.showDistanceRing200
+    property bool showDistanceRing300: viewSettings.showDistanceRing300
+    property bool showDistanceRing500: viewSettings.showDistanceRing500
     property bool showWeatherOverlay: viewSettings.showWeatherOverlay
+    property bool showContourLines: viewSettings.showContourLines
+    property bool showStreetNames: viewSettings.showStreetNames
     property var huntingAreas: []
     property int primaryAreaId: viewSettings.primaryHuntingAreaId
     property bool drawingArea: false
@@ -85,6 +105,8 @@ ApplicationWindow {
     property int minimumDraftPointDistance: 50
     property int vertexCollapseDistance: 10
     onMapStyleChanged: applyMapStyle()
+    onShowContourLinesChanged: applyMapStyle()
+    onShowStreetNamesChanged: applyMapStyle()
     onPrimaryAreaIdChanged: viewSettings.primaryHuntingAreaId = primaryAreaId
 
     function reloadHuntingAreas() {
@@ -321,8 +343,9 @@ ApplicationWindow {
         name: "maplibre"
         PluginParameter {
             name: "maplibre.map.styles"
-            value: "https://api.maptiler.com/maps/satellite/style.json?key=BCUiLcvKmomeRGpKOIea,"
-                 + huntingStyleUrl + ","
+            value: "https://api.maptiler.com/maps/satellite/style.json?key="
+                 + mapTilerApiKey + ","
+                 + huntingStyleUrls.join(",") + ","
                  + "https://tiles.openfreemap.org/styles/liberty"
         }
     }
@@ -338,20 +361,11 @@ ApplicationWindow {
 
         MapCircle {
             center: liveLocation.coordinate
-            radius: 200
+            radius: 40
             color: "transparent"
             border.color: "#4A4A4A"
             border.width: 2
-            visible: mainWindow.showDistanceRings
-        }
-
-        MapCircle {
-            center: liveLocation.coordinate
-            radius: 100
-            color: "transparent"
-            border.color: "#4A4A4A"
-            border.width: 2
-            visible: mainWindow.showDistanceRings
+            visible: mainWindow.showDistanceRings && mainWindow.showDistanceRing40
         }
 
         MapCircle {
@@ -360,17 +374,116 @@ ApplicationWindow {
             color: "transparent"
             border.color: "#4A4A4A"
             border.width: 2
-            visible: mainWindow.showDistanceRings
+            visible: mainWindow.showDistanceRings && mainWindow.showDistanceRing50
+        }
+
+        MapCircle {
+            center: liveLocation.coordinate
+            radius: 75
+            color: "transparent"
+            border.color: "#4A4A4A"
+            border.width: 2
+            visible: mainWindow.showDistanceRings && mainWindow.showDistanceRing75
+        }
+
+        MapCircle {
+            center: liveLocation.coordinate
+            radius: 100
+            color: "transparent"
+            border.color: "#4A4A4A"
+            border.width: 2
+            visible: mainWindow.showDistanceRings && mainWindow.showDistanceRing100
+        }
+
+        MapCircle {
+            center: liveLocation.coordinate
+            radius: 150
+            color: "transparent"
+            border.color: "#4A4A4A"
+            border.width: 2
+            visible: mainWindow.showDistanceRings && mainWindow.showDistanceRing150
+        }
+
+        MapCircle {
+            center: liveLocation.coordinate
+            radius: 200
+            color: "transparent"
+            border.color: "#4A4A4A"
+            border.width: 2
+            visible: mainWindow.showDistanceRings && mainWindow.showDistanceRing200
+        }
+
+        MapCircle {
+            center: liveLocation.coordinate
+            radius: 300
+            color: "transparent"
+            border.color: "#4A4A4A"
+            border.width: 2
+            visible: mainWindow.showDistanceRings && mainWindow.showDistanceRing300
+        }
+
+        MapCircle {
+            center: liveLocation.coordinate
+            radius: 500
+            color: "transparent"
+            border.color: "#4A4A4A"
+            border.width: 2
+            visible: mainWindow.showDistanceRings && mainWindow.showDistanceRing500
         }
 
         MapQuickItem {
-            coordinate: liveLocation.coordinate.atDistanceAndAzimuth(100, 0)
-            anchorPoint.x: distanceLabel.width / 2
-            anchorPoint.y: distanceLabel.height
-            visible: mainWindow.showDistanceRings
+            coordinate: liveLocation.coordinate.atDistanceAndAzimuth(40, 0)
+            anchorPoint.x: distanceLabel40.width / 2
+            anchorPoint.y: distanceLabel40.height
+            visible: mainWindow.showDistanceRings && mainWindow.showDistanceRing40
 
             sourceItem: Text {
-                id: distanceLabel
+                id: distanceLabel40
+                text: "40 m"
+                color: "#4A4A4A"
+                font.bold: true
+                font.pixelSize: 10
+            }
+        }
+
+        MapQuickItem {
+            coordinate: liveLocation.coordinate.atDistanceAndAzimuth(50, 60)
+            anchorPoint.x: distanceLabel50.width / 2
+            anchorPoint.y: distanceLabel50.height
+            visible: mainWindow.showDistanceRings && mainWindow.showDistanceRing50
+
+            sourceItem: Text {
+                id: distanceLabel50
+                text: "50 m"
+                color: "#4A4A4A"
+                font.bold: true
+                font.pixelSize: 10
+            }
+        }
+
+        MapQuickItem {
+            coordinate: liveLocation.coordinate.atDistanceAndAzimuth(75, 120)
+            anchorPoint.x: distanceLabel75.width / 2
+            anchorPoint.y: distanceLabel75.height
+            visible: mainWindow.showDistanceRings && mainWindow.showDistanceRing75
+
+            sourceItem: Text {
+                id: distanceLabel75
+                text: "75 m"
+                color: "#4A4A4A"
+                font.bold: true
+                font.pixelSize: 10
+            }
+        }
+
+        MapQuickItem {
+            coordinate: liveLocation.coordinate.atDistanceAndAzimuth(100, 180)
+            anchorPoint.x: distanceLabel100.width / 2
+            anchorPoint.y: distanceLabel100.height
+            visible: mainWindow.showDistanceRings && mainWindow.showDistanceRing100
+
+            sourceItem: Text {
+                id: distanceLabel100
                 text: "100 m"
                 color: "#4A4A4A"
                 font.bold: true
@@ -379,14 +492,59 @@ ApplicationWindow {
         }
 
         MapQuickItem {
-            coordinate: liveLocation.coordinate.atDistanceAndAzimuth(200, 0)
-            anchorPoint.x: outerDistanceLabel.width / 2
-            anchorPoint.y: outerDistanceLabel.height
-            visible: mainWindow.showDistanceRings
+            coordinate: liveLocation.coordinate.atDistanceAndAzimuth(150, 240)
+            anchorPoint.x: distanceLabel150.width / 2
+            anchorPoint.y: distanceLabel150.height
+            visible: mainWindow.showDistanceRings && mainWindow.showDistanceRing150
 
             sourceItem: Text {
-                id: outerDistanceLabel
+                id: distanceLabel150
+                text: "150 m"
+                color: "#4A4A4A"
+                font.bold: true
+                font.pixelSize: 10
+            }
+        }
+
+        MapQuickItem {
+            coordinate: liveLocation.coordinate.atDistanceAndAzimuth(200, 300)
+            anchorPoint.x: distanceLabel200.width / 2
+            anchorPoint.y: distanceLabel200.height
+            visible: mainWindow.showDistanceRings && mainWindow.showDistanceRing200
+
+            sourceItem: Text {
+                id: distanceLabel200
                 text: "200 m"
+                color: "#4A4A4A"
+                font.bold: true
+                font.pixelSize: 10
+            }
+        }
+
+        MapQuickItem {
+            coordinate: liveLocation.coordinate.atDistanceAndAzimuth(300, 270)
+            anchorPoint.x: distanceLabel300.width / 2
+            anchorPoint.y: distanceLabel300.height
+            visible: mainWindow.showDistanceRings && mainWindow.showDistanceRing300
+
+            sourceItem: Text {
+                id: distanceLabel300
+                text: "300 m"
+                color: "#4A4A4A"
+                font.bold: true
+                font.pixelSize: 10
+            }
+        }
+
+        MapQuickItem {
+            coordinate: liveLocation.coordinate.atDistanceAndAzimuth(500, 315)
+            anchorPoint.x: distanceLabel500.width / 2
+            anchorPoint.y: distanceLabel500.height
+            visible: mainWindow.showDistanceRings && mainWindow.showDistanceRing500
+
+            sourceItem: Text {
+                id: distanceLabel500
+                text: "500 m"
                 color: "#4A4A4A"
                 font.bold: true
                 font.pixelSize: 10
@@ -560,7 +718,8 @@ ApplicationWindow {
     Rectangle {
         id: weatherOverlay
         z: 10
-        visible: mainWindow.showWeatherOverlay && weather.available
+        visible: mainWindow.showWeatherOverlay
+                 && (weather.available || Number.isFinite(liveLocation.coordinate.altitude))
         anchors.top: parent.top
         anchors.right: parent.right
         anchors.topMargin: 16
@@ -576,7 +735,14 @@ ApplicationWindow {
             anchors.margins: 10
             spacing: 4
 
+            Label {
+                visible: Number.isFinite(liveLocation.coordinate.altitude)
+                text: "Elevation " + Math.round(liveLocation.coordinate.altitude) + " m"
+                color: "white"
+            }
+
             RowLayout {
+                visible: weather.available
                 spacing: 8
 
                 Text {
@@ -595,12 +761,14 @@ ApplicationWindow {
             }
 
             Label {
+                visible: weather.available
                 text: "Rain " + weather.precipitationProbability + "% \u00b7 "
                       + weather.precipitation.toFixed(1) + " mm"
                 color: "white"
             }
 
             Label {
+                visible: weather.available
                 text: "Weather: Open-Meteo"
                 color: "white"
                 opacity: 0.7
@@ -714,8 +882,23 @@ ApplicationWindow {
     }
 
     function applyMapStyle() {
-        if (mapStyle >= 0 && mapStyle < map.supportedMapTypes.length)
-            map.activeMapType = map.supportedMapTypes[mapStyle]
+        var mapTypeIndex = mapStyle
+        if (mapStyle === 1) {
+            if (showStreetNames)
+                mapTypeIndex = showContourLines ? 2 : 1
+            else
+                mapTypeIndex = showContourLines ? 4 : 3
+        } else if (mapStyle === 2) {
+            mapTypeIndex = 5
+        }
+
+        if (mapTypeIndex >= 0 && mapTypeIndex < map.supportedMapTypes.length) {
+            var center = map.center
+            var zoomLevel = map.zoomLevel
+            map.activeMapType = map.supportedMapTypes[mapTypeIndex]
+            map.center = center
+            viewSettings.mapZoomLevel = zoomLevel
+        }
     }
 
     function recenterToLastAcceptedPosition() {
