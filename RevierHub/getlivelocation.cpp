@@ -1,8 +1,20 @@
 #include "getlivelocation.hpp"
 
+#include <cmath>
+
+#ifdef Q_OS_ANDROID
+#include <QCoreApplication>
+#include <QJniObject>
+#include <QPointer>
+#endif
+
 namespace {
 constexpr double maximumTrailPointAccuracyMeters = 25.0;
 constexpr int requiredInitialAccurateFixes = 3;
+
+#ifdef Q_OS_ANDROID
+QPointer<GetLiveLocation> liveLocationInstance;
+#endif
 }
 
 GetLiveLocation::GetLiveLocation(QObject *parent)
@@ -21,6 +33,15 @@ GetLiveLocation::GetLiveLocation(QObject *parent)
         m_source->setUpdateInterval(1000);
         m_source->startUpdates();
     }
+
+#ifdef Q_OS_ANDROID
+    liveLocationInstance = this;
+    QJniObject::callStaticMethod<void>(
+        "com/revierhub/app/OrientationProvider",
+        "start",
+        "(Landroid/content/Context;)V",
+        QNativeInterface::QAndroidApplication::context());
+#endif
 }
 
 void GetLiveLocation::onPositionUpdated(
@@ -31,7 +52,14 @@ void GetLiveLocation::onPositionUpdated(
 
     m_currentCoordinate = info.coordinate();
 
-    emit locationChanged(m_currentCoordinate);
+#ifndef Q_OS_ANDROID
+    if (info.hasAttribute(QGeoPositionInfo::Direction)
+        && std::isfinite(info.attribute(QGeoPositionInfo::Direction))) {
+        m_heading = info.attribute(QGeoPositionInfo::Direction);
+    } else {
+        m_heading = std::numeric_limits<double>::quiet_NaN();
+    }
+#endif
 
     if (!info.hasAttribute(QGeoPositionInfo::HorizontalAccuracy)
         || info.attribute(QGeoPositionInfo::HorizontalAccuracy)
@@ -42,16 +70,25 @@ void GetLiveLocation::onPositionUpdated(
             ++m_accurateFixes;
 
         if (m_accurateFixes == requiredInitialAccurateFixes) {
+            m_hasGpsLock = true;
             emit acceptedPositionChanged(
                 m_currentCoordinate,
                 info.attribute(QGeoPositionInfo::HorizontalAccuracy));
         }
     }
 
+    emit locationChanged(m_currentCoordinate);
+
     if(shallRecenter()) {
         m_currentCenter = info.coordinate();
         emit centerChanged(m_currentCenter);
     }
+}
+
+void GetLiveLocation::updateHeading(double heading)
+{
+    m_heading = heading;
+    emit locationChanged(m_currentCoordinate);
 }
 
 QGeoCoordinate GetLiveLocation::currentCoordinate() const
@@ -74,3 +111,21 @@ bool GetLiveLocation::shallRecenter()
 
     return false;
 }
+
+#ifdef Q_OS_ANDROID
+extern "C" JNIEXPORT void JNICALL
+Java_com_revierhub_app_OrientationProvider_onHeadingChanged(
+    JNIEnv *,
+    jclass,
+    jdouble heading)
+{
+    if (!liveLocationInstance)
+        return;
+
+    QMetaObject::invokeMethod(
+        liveLocationInstance,
+        "updateHeading",
+        Qt::QueuedConnection,
+        Q_ARG(double, static_cast<double>(heading)));
+}
+#endif
